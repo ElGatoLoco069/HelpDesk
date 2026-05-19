@@ -1,0 +1,225 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem("darkMode") === "true") {
+                    document.documentElement.classList.add("dark");
+                }
+            } catch (error) {}
+        })();
+    </script>
+    {% include 'includes/includes.html' %}
+    <link rel="shortcut icon" href="{% static 'images/logo.svg' %}" type="image/x-icon">
+</head>
+
+<body>
+
+    <!-- Top Navigation -->
+    <div class="site-nav">
+        <button class="sidebar-toggle" title="Expandir menu lateral">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <div class="sidebar-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar shadow">
+
+            <!-- Sidebar Header -->
+            <header class="sidebar-header">
+                <div class="brand-shell">
+                    <div class="brand-copy">
+                        <strong>JE3 Systems</strong>
+                        <span>Help Desk</span>
+                    </div>
+                </div>
+
+                <button class="sidebar-toggle" title="Recolher menu lateral">
+                    <i class="fas fa-angle-left"></i>
+                </button>
+            </header>
+
+            <!-- Sidebar Content -->
+            <div class="sidebar-content">
+                <!-- Menu List -->
+                <ul class="menu-list">
+                    <li class="menu-item">
+                        <a href="{% url 'home' %}" class="menu-link {% if active_page == 'home' %}active{% endif %}" title="Acessar Dashboard">
+                            <i class="fas fa-chart-line"></i>
+                            <span class="menu-label">Dashboard</span>
+                        </a>
+                    </li>
+
+                    <li class="menu-item has-dropdown {% if 'registers' in request.path %}active{% endif %}">
+
+                        <a href="#" class="menu-link dropdown-toggle" title="Expandir menu de cadastros">
+                            <i class="fas fa-file-invoice"></i>
+                            <span class="menu-label">Cadastros</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+
+                        <ul class="submenu">
+                            <li>
+                                <a href="{% url 'new_ticket' %}" class="submenu-link {% if active_page == 'new_ticket' %}active{% endif %}" 
+                                title="Acessar formulario de criação de chamados">
+                                    <i class="fas fa-ticket"></i>
+                                    <span>Novo Chamado</span>
+                                </a>
+                            </li>
+                            {% if request.user.profile.is_support %}
+                            <li>
+                                <a href="{% url 'categories' %}" class="submenu-link {% if active_page == 'categories' %}active{% endif %}"
+                                title="Acessar lista de categorias e subcategorias">
+                                    <i class="fas fa-tags"></i>
+                                    <span>Categorias</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="#" class="menu-link {% if active_page == 'config' %}active{% endif %}"
+                        title="Acessar Configurações do sistema">
+                            <i class="fas fa-gear"></i>
+                            <span class="menu-label">Configurações</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="sidebar-footer">
+
+                <!-- Theme Toggle -->
+                <button class="theme-toggle" title="Alterar tema entre escuro e claro">
+                    <div class="theme-label">
+                        <i class="fas theme-icon"></i>
+                        <span class="theme-text"></span>
+                    </div>
+
+                    <div class="theme-toggle-track">
+                        <div class="theme-toggle-indicator shadow"></div>
+                    </div>
+                </button>
+
+                <!-- Logout -->
+                <li class="menu-item">
+                    <a href="{% url 'logout' %}" class="menu-link" title="Sair do sistema">
+                        <i class="fas fa-right-from-bracket"></i>
+                        <span class="menu-label">Logout</span>
+                    </a>
+                </li>
+
+            </div>
+
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+
+            <div class="topbar shadow">
+                <div class="user">
+
+                    <div class="avatar">
+                        {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                    </div>
+
+                    <div class="user-copy">
+                        <span class="user-label">Usuario conectado</span>
+                        <div class="full-name">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="company">
+                    <div class="company-copy">
+                        <span class="company-label">Empresa</span>
+                        <strong>{{ user.company.name }}</strong>
+                    </div>
+
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+
+                </div>
+            </div>
+
+            {% block content %}
+            {% endblock %}
+        </div>
+
+    </div>
+    
+    <div id="toastBox"></div>
+
+    <script src="{% static 'js/base.js' %}"></script>
+
+    <script>
+            function showToast(msg, type) {
+            let toast = document.createElement("div");
+
+            let icons = {
+                success: "<i class='fas fa-check-circle'></i>",
+                warning: "<i class='fas fa-circle-exclamation'></i>",
+                error: "<i class='fas fa-times-circle'></i>"
+            };
+
+            let titles = {
+                success: "SUCESSO",
+                warning: "ATENÇÃO",
+                error: "ERRO"
+            };
+
+            toast.classList.add("toast", type);
+            toast.style.display = "block";
+
+            toast.innerHTML = `
+                <div class="toast-title">${titles[type]}</div>
+                <div class="toast-body">
+                    ${icons[type]}
+                    <span>${msg}</span>
+                </div>
+            `;
+
+            document.getElementById("toastBox").appendChild(toast);
+
+            // Adiciona a classe .hide após 5.5s, e remove após 6s
+            setTimeout(() => {
+                toast.classList.add("hide");
+            }, 5500);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 6000);
+        }
+
+
+        // Django messages renderizadas no JS
+        {% if messages %}
+            {% for message in messages %}
+                {# Determina o tipo da mensagem e exibe o toast #}
+                {% if message.tags == 'success' %}
+                    showToast("{{ message|escapejs }}", "success");
+                {% elif message.tags == 'warning' %}
+                    showToast("{{ message|escapejs }}", "warning");
+                {% elif message.tags == 'error' %}
+                    showToast("{{ message|escapejs }}", "error");
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </script>
+
+</body>
+</html>

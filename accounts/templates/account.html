@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Help Desk</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/account.css' %}">
+    <link rel="stylesheet" href="{% static 'css/toast.css' %}">
+</head>
+
+<body>
+
+<main class="auth-page">
+    <section class="auth-shell shadow">
+        <aside class="auth-panel">
+            <div class="brand-header">
+                <div class="brand-mark">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <div>
+                    <strong>JE3 Systems</strong>
+                    <span>Help Desk</span>
+                </div>
+            </div>
+
+            <div class="panel-copy">
+                <span class="eyebrow">Portal interno</span>
+                <h1>Atendimento organizado desde o primeiro acesso.</h1>
+                <p>Entre com suas credenciais de rede para registrar e acompanhar chamados.</p>
+            </div>
+
+            <div class="panel-list">
+                <div class="panel-item">
+                    <i class="fas fa-ticket"></i>
+                    <span>Abertura de chamados</span>
+                </div>
+                <div class="panel-item">
+                    <i class="fas fa-tags"></i>
+                    <span>Categorias e prioridades</span>
+                </div>
+                <div class="panel-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard de acompanhamento</span>
+                </div>
+            </div>
+        </aside>
+
+        <section class="auth-form">
+            <div class="login-card">
+                <header class="login-header">
+                    <span class="login-icon">
+                        <i class="fas fa-right-to-bracket"></i>
+                    </span>
+                    <div>
+                        <h2>Entrar</h2>
+                        <p>Acesse com seu usuario e senha do Computador!</p>
+                    </div>
+                </header>
+
+                <form method="POST" class="login-form">
+                    {% csrf_token %}
+
+                    <label class="form-group">
+                        <span>Usuario</span>
+                        <div class="input-shell">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="username" placeholder="Seu usuario de rede" autocomplete="username" required>
+                        </div>
+                    </label>
+
+                    <label class="form-group">
+                        <span>Senha</span>
+                        <div class="input-shell">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" name="password" placeholder="Sua senha" autocomplete="current-password" required>
+                        </div>
+                    </label>
+
+                    <div class="form-options">
+                        <label class="checkbox">
+                            <input type="checkbox" name="remember">
+                            <span>Lembrar usuario</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-login" title="Acessar o sistema">
+                        <i class="fas fa-arrow-right-to-bracket"></i>
+                        <span>Entrar</span>
+                    </button>
+                </form>
+
+                <footer class="login-footer">
+                    <p>2026 Help Desk</p>
+                </footer>
+            </div>
+        </section>
+    </section>
+</main>
+
+<div id="toastBox"></div>
+
+<script src="{% static 'js/account.js' %}"></script>
+<script>
+    function showToast(msg, type) {
+        let toast = document.createElement("div");
+
+        let icons = {
+            success: "<i class='fas fa-check-circle'></i>",
+            warning: "<i class='fas fa-circle-exclamation'></i>",
+            error: "<i class='fas fa-times-circle'></i>"
+        };
+
+        let titles = {
+            success: "SUCESSO",
+            warning: "ATENCAO",
+            error: "ERRO"
+        };
+
+        toast.classList.add("toast", type);
+        toast.style.display = "block";
+
+        toast.innerHTML = `
+            <div class="toast-title">${titles[type]}</div>
+            <div class="toast-body">
+                ${icons[type]}
+                <span>${msg}</span>
+            </div>
+        `;
+
+        document.getElementById("toastBox").appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add("hide");
+        }, 5500);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 6000);
+    }
+
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                showToast("{{ message|escapejs }}", "success");
+            {% elif message.tags == 'warning' %}
+                showToast("{{ message|escapejs }}", "warning");
+            {% elif message.tags == 'error' %}
+                showToast("{{ message|escapejs }}", "error");
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</script>
+</body>
+</html>

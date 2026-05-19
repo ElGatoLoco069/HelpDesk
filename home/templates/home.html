@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% load humanize %}
+{% block content %}
+<head>
+    {% load static %}
+    <title>Dashboard | Help Desk</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+
+<body>
+    <section class="dashboard-header">
+        <div>
+            <span class="eyebrow">Visao geral</span>
+            <h1>Dashboard de chamados</h1>
+            <p>Acompanhe fila, prioridades e chamados que precisam de atencao.</p>
+        </div>
+
+        <div class="dashboard-actions">
+            <a class="btn-ghost" href="{% url 'home' %}" title="Atualizar indicadores">
+                <i class="fas fa-rotate-right"></i>
+                Atualizar
+            </a>
+            <a href="{% url 'new_ticket' %}" class="btn-primary" title="Abrir novo chamado">
+                <i class="fas fa-plus"></i>
+                Novo chamado
+            </a>
+        </div>
+    </section>
+    {% if request.user.profile.is_support %}
+    <section class="summary">
+        <article class="summary-card open">
+            <div class="summary-icon">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <div>
+                <span class="summary-label">Abertos</span>
+                <strong class="value">{{open_tickets}}</strong>
+                <span class="info">{{open_today}} {% if open_today > 1 %}novos{% else %}novo{% endif %} hoje</span>
+            </div>
+        </article>
+
+        <article class="summary-card progress">
+            <div class="summary-icon">
+                <i class="fas fa-spinner"></i>
+            </div>
+            <div>
+                <span class="summary-label">Em atendimento</span>
+                <strong class="value">{{in_service}}</strong>
+                <span class="info">Chamados em andamento</span>
+            </div>
+        </article>
+
+        <article class="summary-card warning">
+            <div class="summary-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div>
+                <span class="summary-label">Aguardando</span>
+                <strong class="value">{{waiting}}</strong>
+                <span class="info">{{stale_waiting}} sem atualizacao em 24h</span>
+            </div>
+        </article>
+
+        <article class="summary-card danger">
+            <div class="summary-icon">
+                <i class="fas fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <span class="summary-label">Criticos</span>
+                <strong class="value">{{critical}}</strong>
+                <span class="info">SLA em risco</span>
+            </div>
+        </article>
+    </section>
+
+    <section class="focus-grid">
+        <article class="focus-card">
+            <div class="focus-header">
+                <div>
+                    <h2>Fila de atendimento</h2>
+                    <p>Distribuicao atual por status</p>
+                </div>
+                <span class="focus-badge">{{open_tickets}} total</span>
+            </div>
+
+            <div class="queue-bars">
+                {% for item in status_summary %}
+                <div class="queue-row">
+                    <span>{{item.name}}</span>
+                    <div class="bar"><span style="width: {{item.percent}}%"></span></div>
+                    <strong>{{item.count}}</strong>
+                </div>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="focus-card attention">
+            <div class="focus-header">
+                <div>
+                    <h2>Atencao imediata</h2>
+                    <p>Chamados com prioridade alta ou sem movimentacao</p>
+                </div>
+                <span class="focus-badge danger">{{critical}} {% if critical > 1 %}Itens{% else %}Item{% endif %}</span>
+            </div>
+
+            <div class="attention-list">
+                {% if critical %}
+                {% for ticket in attention_tickets %}
+                        <div class="attention-item">
+                            <i class="fas fa-fire"></i>
+                            <div>
+                                <strong>{{ticket.hash}}</strong>
+                                <span>{{ticket.title}}</span>
+                            </div>
+                        </div>
+                {% endfor %}
+                {% else %}
+                    <span style="color: var(--text-color);">
+                        Nenhum chamado de alta prioridade encontrado!
+                    </span>
+                {% endif %}
+            </div>
+        </article>
+    </section>
+    {% endif %}
+    <section class="ticket-list">
+        <div class="ticket-list-header">
+            <div>
+                <h2>Chamados recentes</h2>
+                <p>Use os filtros para localizar rapidamente o que precisa acompanhar.</p>
+            </div>
+
+            <form class="filters" method="get" action="{% url 'home' %}">
+                <div class="input-field search-field">
+                    <label for="search">Buscar</label>
+                    <div class="input-icon">
+                        <i class="fas fa-search"></i>
+                        <input type="search" id="search" name="search" placeholder="Numero, titulo ou solicitante" value="{{filters.search}}">
+                    </div>
+                </div>
+
+                <div class="input-field">
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        <option value="">Todos</option>
+                        {% for s in status %}
+                            <option value="{{s.id}}" {% if filters.status == s.id|stringformat:"s" %}selected{% endif %}>{{s.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="input-field">
+                    <label for="priority">Prioridade</label>
+                    <select id="priority" name="priority">
+                        <option value="">Todas</option>
+                        {% for priority in prioritys %}
+                            <option value="{{priority.id}}" {% if filters.priority == priority.id|stringformat:"s" %}selected{% endif %}>{{priority.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn-primary filter-submit" type="submit" title="Aplicar filtros">
+                    <i class="fas fa-filter"></i>
+                    Filtrar
+                </button>
+            </form>
+        </div>
+
+        <section class="ticket-list-body">
+            {% if tickets %}
+                {% for ticket in tickets %}
+                    <article class="ticket-item">
+                        <div class="ticket-main">
+                            <div class="ticket-id">
+                                <strong>{{ticket.hash}}</strong>
+                                <span class="date">{{ticket.created_at|date:"d/m/Y H:i"}}</span>
+                            </div>
+                            <h3 class="ticket-title">{{ticket.title}}</h3>
+                            <div class="ticket-meta">
+                                <span class="badge-status {{ticket.priority.color}}">{{ticket.priority}}</span>
+                                <span>
+                                    <i class="fas fa-clock"></i>
+                                    Atualizado {{ ticket.updated_at|naturaltime }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="ticket-details">
+                            <span><i class="fas fa-user"></i> {{ticket.created_by.first_name}} {{ticket.created_by.last_name}}</span>
+                            <span><i class="fas fa-tags"></i> {{ticket.title.category}}</span>
+                            <span>
+                                <i class="fas fa-user-gear"></i>
+                                {% if ticket.assigned_to %}
+                                    {{ticket.assigned_to.first_name|default:ticket.assigned_to.username}} {{ticket.assigned_to.last_name}}
+                                {% else %}
+                                    Sem tecnico
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="ticket-status">
+                            <span class="badge-status {{ticket.status.color}}">{{ticket.status}}</span>
+                        </div>
+
+                        <div class="ticket-actions">
+                            <a class="action-btn view" href="{% url 'ticket_detail' ticket.id %}" title="Visualizar {{ticket.hash}}"><i class="fas fa-eye"></i></a>
+                            {% if request.user.profile.is_support %}
+                                <a class="action-btn edit" href="{% url 'ticket_edit' ticket.id %}" title="Editar {{ticket.hash}}"><i class="fas fa-pen"></i></a>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            {% else %}
+                <div class="empty-ticket-state">
+                    <i class="fas fa-inbox"></i>
+                    <strong>Nenhum chamado encontrado</strong>
+                    <span>Ajuste os filtros ou abra um novo chamado.</span>
+                </div>
+            {% endif %}
+        </section>
+    </section>
+</body>
+
+{% endblock %}

@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<head>
+    <title>Novo Chamado | Help Desk</title>
+    <link rel="stylesheet" href="{% static 'css/new_ticket.css' %}">
+</head>
+
+<body>
+
+    <section class="page-header">
+        <div>
+            <h1>Registro de Chamado</h1>
+            <p class="page-description">
+                Preencha as informacoes para abrir um novo chamado
+            </p>
+        </div>
+
+        <div class="page-header-badge shadow">
+            <i class="fas fa-ticket"></i>
+            <span>1 etapa</span>
+        </div>
+    </section>
+
+    <section class="form-layout">
+
+        <aside class="form-sidebar">
+            <div class="sidebar-icon">
+                <i class="fas fa-ticket"></i>
+            </div>
+
+            <div class="step-list">
+                <div class="step-pill active">
+                    <span>1</span>
+                    <div>
+                        <strong>Chamado</strong>
+                        <small>Classificacao e descricao</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ticket-preview">
+                <span class="preview-label">Resumo</span>
+                <strong id="previewCategory">Categoria nao selecionada</strong>
+                <small id="previewSubcategory">Subcategoria pendente</small>
+
+                <div class="preview-meta">
+                    <span>
+                        <i class="fas fa-align-left"></i>
+                        <span id="previewDescription">0/255</span>
+                    </span>
+                    <span>
+                        <i class="fas fa-paperclip"></i>
+                        <span id="previewAttachments">0 anexos</span>
+                    </span>
+                </div>
+            </div>
+        </aside>
+
+        <div class="form-card">
+            <form id="ticket-form" action="{% url 'new_ticket' %}" method="post" enctype="multipart/form-data"
+                novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>Dados do chamado</h3>
+                        <p>Escolha a classificacao correta. A subcategoria sera usada como titulo do chamado.</p>
+                    </div>
+
+                    <div class="form-grid">
+
+                        <div class="field">
+                            <label for="logad_user">Nome completo</label>
+                            <input type="text" name="logad_user" readonly
+                                value="{{user.first_name}} {{user.last_name}}">
+                        </div>
+
+                        <div class="field">
+                            <label for="phone">
+                                Ramal ou Telefone <b style="color: red;">*</b>
+                            </label>
+
+                            <input type="text" id="phone" name="phone" required maxlength="20"
+                                placeholder="+55 (45) 9 9999-9999"
+                                value="{% if user.profile.telefone %}{{ user.profile.telefone }}{% endif %}">
+                        </div>
+
+                        <div class="field">
+                            <label for="category">Categoria <b style="color: red;">*</b></label>
+                            <select id="category" name="category" required>
+                                <option value="">Selecione uma categoria</option>
+                                {% if categories %}
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                                {% else %}
+                                <option value="" disabled>Nenhuma categoria encontrada</option>
+                                {% endif %}
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="subcategory">Subcategoria <b style="color: red;">*</b></label>
+                            <select id="subcategory" name="subcategory" required disabled>
+                                <option value="">Selecione uma categoria primeiro</option>
+                            </select>
+                        </div>
+
+                        <div class="field full">
+                            <div class="label-row">
+                                <label for="description">Descricao <b style="color: red;">*</b></label>
+                                <span id="descriptionCounter">0/255</span>
+                            </div>
+                            <textarea id="description" name="description"
+                                placeholder="Descreva o problema, quando comecou e o impacto no trabalho..."
+                                minlength="15" maxlength="255" required></textarea>
+                            <small class="field-hint">Minimo de 15 caracteres para ajudar no atendimento.</small>
+                        </div>
+
+                        <div class="field full">
+                            <label for="attachments">Anexos</label>
+
+                            <div class="file-upload" id="fileUpload">
+                                <input type="file" id="attachments" name="attachments" accept=".png,.jpg,.jpeg,.pdf"
+                                    multiple hidden>
+
+                                <div class="file-upload-area">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>
+                                        Arraste arquivos ou
+                                        <span class="file-link">clique para selecionar</span>
+                                    </p>
+                                    <small>PNG, JPG ou PDF ate 10MB por arquivo</small>
+                                </div>
+
+                                <p class="upload-feedback" id="uploadFeedback"></p>
+                                <div class="file-list" id="fileList"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{% url 'home' %}" class="btn-ghost" title="Cancelar abertura do chamado">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn-primary" id="submitTicket"
+                            title="Confirmar e enviar o chamado">
+                            <i class="fas fa-paper-plane"></i>
+                            Confirmar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </section>
+
+    <script>
+        const phoneInput = document.getElementById('phone');
+
+        // Mantém +55 como padrão ao clicar
+        phoneInput.addEventListener('focus', function () {
+            if (this.value.trim() === '') {
+                this.value = '+55 ';
+            }
+        });
+
+        // Formatação automática
+        phoneInput.addEventListener('input', function (e) {
+
+            // Remove tudo que não for número
+            let value = e.target.value.replace(/\D/g, '');
+
+            // Garante que sempre começa com 55
+            if (!value.startsWith('55')) {
+                value = '55' + value;
+            }
+
+            // Limite total
+            value = value.substring(0, 13);
+
+            let formatted = '+55';
+
+            if (value.length >= 3) {
+                formatted += ' (' + value.substring(2, 4);
+            }
+
+            if (value.length >= 5) {
+                formatted += ') ' + value.substring(4, 5);
+            }
+
+            if (value.length >= 6) {
+                formatted += ' ' + value.substring(5, 9);
+            }
+
+            if (value.length >= 10) {
+                formatted += '-' + value.substring(9, 13);
+            }
+
+            e.target.value = formatted;
+        });
+
+        // Impede apagar o +55
+        phoneInput.addEventListener('keydown', function (e) {
+            if (
+                this.selectionStart <= 4 &&
+                (e.key === 'Backspace' || e.key === 'Delete')
+            ) {
+                e.preventDefault();
+            }
+        });
+    </script>
+
+</body>
+
+<script src="{% static 'js/new_ticket.js' %}"></script>
+{% endblock %}
