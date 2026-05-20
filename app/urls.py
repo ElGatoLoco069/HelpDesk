@@ -22,6 +22,7 @@ from accounts.views import AccountsView, logout_view
 from home.views import HomeView
 from ticket.views import TicketDetailView, TicketEditView, TicketView
 from registers.views import CategoryView, get_subcategories
+from notifications.views import mark_notifications_read
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,6 +34,7 @@ urlpatterns = [
     path("tickets/<int:ticket_id>/edit/", TicketEditView.as_view(), name="ticket_edit"),
     path("registers/categories/", CategoryView.as_view(), name="categories"),
     path("subcategories/<int:category_id>/", get_subcategories, name="get_subcategories"),
+    path("mark-read/", mark_notifications_read, name="mark_notifications_read"),
 ]
 
 if settings.DEBUG:

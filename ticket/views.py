@@ -13,6 +13,8 @@ import random
 import string
 from datetime import datetime
 
+from notifications.views import SendNotification
+
 MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
 ACCEPTED_ATTACHMENT_TYPES = {"image/png", "image/jpeg", "application/pdf"}
 
@@ -132,6 +134,13 @@ class TicketView(View):
             request.user.profile.telefone = phone
             request.user.profile.save()
             
+            SendNotification.success(
+                request, 
+                "Chamado Criado", f"Chamado {ticket_hash} criado com sucesso!",
+                False,
+                ticket.created_by
+            )
+            
             return ticket
         
         except Exception as e:
@@ -239,32 +248,129 @@ class TicketEditView(View):
 
             status_id = request.POST.get("status")
             priority_id = request.POST.get("priority")
-            assigned_to_id = request.POST.get("assigned_to") or None
+            assigned_to_id = request.POST.get("assigned_to")
 
-            if not Ticket_Status.objects.filter(id=status_id, status=True).exists():
-                messages.warning(request, "Selecione um status valido.")
-                return render(request, "ticket_edit.html", self.get_context(request, ticket))
+            try:
+                status_id = int(status_id)
+                priority_id = int(priority_id)
+                assigned_to_id = int(assigned_to_id) if assigned_to_id else None
 
-            if not Priority.objects.filter(id=priority_id, status=True).exists():
-                messages.warning(request, "Selecione uma prioridade valida.")
-                return render(request, "ticket_edit.html", self.get_context(request, ticket))
+            except (TypeError, ValueError):
+                messages.warning(request, "Dados inválidos enviados.")
+                return render(
+                    request,
+                    "ticket_edit.html",
+                    self.get_context(request, ticket)
+                )
 
-            if assigned_to_id and not User.objects.filter(id=assigned_to_id, is_active=True).exists():
-                messages.warning(request, "Selecione um tecnico valido.")
-                return render(request, "ticket_edit.html", self.get_context(request, ticket))
+            if not Ticket_Status.objects.filter(
+                id=status_id,
+                status=True
+            ).exists():
 
+                messages.warning(request, "Selecione um status válido.")
+
+                return render(
+                    request,
+                    "ticket_edit.html",
+                    self.get_context(request, ticket)
+                )
+
+            if not Priority.objects.filter(
+                id=priority_id,
+                status=True
+            ).exists():
+
+                messages.warning(request, "Selecione uma prioridade válida.")
+
+                return render(
+                    request,
+                    "ticket_edit.html",
+                    self.get_context(request, ticket)
+                )
+
+            if assigned_to_id and not User.objects.filter(
+                id=assigned_to_id,
+                is_active=True
+            ).exists():
+
+                messages.warning(request, "Selecione um técnico válido.")
+
+                return render(
+                    request,
+                    "ticket_edit.html",
+                    self.get_context(request, ticket)
+                )
+
+            if assigned_to_id != ticket.assigned_to_id:
+
+                assigned_user = User.objects.get(id=assigned_to_id) if assigned_to_id else None
+
+                SendNotification.success(
+                    request,
+                    "Técnico Atribuído",
+                    f"O chamado {ticket.hash} foi atribuído para "
+                    f"{assigned_user.get_full_name() if assigned_user else 'nenhum técnico'}.",
+                    False,
+                    ticket.created_by
+                )
+                
+            if not TicketReport.objects.filter(ticket=ticket).exists() and status_id ==  5:
+                
+                messages.warning(request, "Para finalizar o chamado é necessario adicionar o relatorio tecnico!.")
+
+                return render(
+                    request,
+                    "ticket_edit.html",
+                    self.get_context(request, ticket)
+                )
+
+            if status_id != ticket.status.id:
+                SendNotification.success(request,
+                "Status do chamado Atualizado",
+                f"O chamado {ticket.hash} esta {Ticket_Status.objects.get(id=status_id)}",
+                False, ticket.created_by)
+
+            if status_id == 5:
+                
+                SendNotification.success(request, 
+                "Chamado concluido", 
+                f"O tecnico {ticket.assigned_to.get_full_name()} acaba de concluir o chamado {ticket.hash}!",
+                False, ticket.created_by)
+                
+
+            # =========================
+            # ATUALIZAÇÃO DO CHAMADO
+            # =========================
             ticket.status_id = status_id
             ticket.priority_id = priority_id
             ticket.assigned_to_id = assigned_to_id
+
             ticket.save()
 
+            # =========================
+            # SUCESSO
+            # =========================
             messages.success(request, "Chamado atualizado com sucesso!")
-            return redirect("ticket_detail", ticket_id=ticket.id)
+
+            return redirect(
+                "ticket_detail",
+                ticket_id=ticket.id
+            )
 
         except Exception as e:
-            print(e)
-            messages.error(request, "Erro ao atualizar chamado")
-            return redirect("ticket_detail", ticket_id=ticket_id)
+
+            print("ERRO AO ATUALIZAR CHAMADO:", e)
+
+            messages.error(
+                request,
+                "Erro ao atualizar chamado."
+            )
+
+            return redirect(
+                "ticket_detail",
+                ticket_id=ticket_id
+            )
 
 
     def create_report(self, request, ticket):
@@ -292,6 +398,11 @@ class TicketEditView(View):
             actions=actions,
             materials=materials,
         )
+        
+        SendNotification.success(request, 
+        "Relatorio tecnico adicionado",
+        f"O tecnico adicionou um relatorio ao chamado {ticket.hash}", 
+        False, ticket.created_by)
 
         messages.success(request, "Relatorio tecnico adicionado com sucesso!")
         return redirect("ticket_detail", ticket_id=ticket.id)

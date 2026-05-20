@@ -144,18 +144,91 @@
 
                 <div class="company">
                     <div class="company-copy">
-                        <span class="company-label">Empresa</span>
-                        <strong>{{ user.company.name }}</strong>
+                        <span class="company-label">Departamento</span>
+                        <strong>{{ user.profile.departamento }}</strong>
                     </div>
 
                     <button class="notification-btn">
                         <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
+                        {% if unread_notifications > 0 %}
+                            <span class="badge">
+                                {{ unread_notifications }}
+                            </span>
+                        {% endif %}
                     </button>
 
                 </div>
             </div>
 
+            <!-- Modal de Notificações -->
+            <div class="notification-modal" id="notificationModal">
+
+                <div class="notification-overlay"></div>
+
+                <div class="notification-content shadow">
+
+                    <div class="notification-header">
+                        <div>
+                            <span class="notification-caption">Central</span>
+                            <h3>Notificações</h3>
+                        </div>
+
+                        <button class="close-notification">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="notification-body">
+
+                        {% for item in notifications %}
+
+                        <div class="notification-item {% if not item.read %}unread{% endif %}">
+
+                            <div class="notification-icon {{ item.notification.type.color }}">
+                                <i class="{{ item.notification.type.icon }}"></i>
+                            </div>
+
+                            <div class="notification-info">
+
+                                <strong>
+                                    {{ item.notification.title }}
+                                </strong>
+
+                                <span>
+                                    {{ item.notification.description }}
+                                </span>
+
+                                <small>
+                                    {{ item.created_at|timesince }}
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        {% empty %}
+
+                        <div class="notification-empty">
+                            Nenhuma notificação encontrada.
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                    <div class="notification-footer">
+                        <button 
+                            class="mark-read-btn" 
+                            id="markReadBtn"
+                            data-url="{% url 'mark_notifications_read' %}"
+                        >
+                            Marcar todas como lidas
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
             {% block content %}
             {% endblock %}
         </div>

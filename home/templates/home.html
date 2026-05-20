@@ -126,10 +126,6 @@
     {% endif %}
     <section class="ticket-list">
         <div class="ticket-list-header">
-            <div>
-                <h2>Chamados recentes</h2>
-                <p>Use os filtros para localizar rapidamente o que precisa acompanhar.</p>
-            </div>
 
             <form class="filters" method="get" action="{% url 'home' %}">
                 <div class="input-field search-field">
@@ -139,6 +135,18 @@
                         <input type="search" id="search" name="search" placeholder="Numero, titulo ou solicitante" value="{{filters.search}}">
                     </div>
                 </div>
+                
+                {% if request.user.profile.is_support %}
+                <div class="input-field">
+                    <label for="tecnico">Tecnico Responsavel</label>
+                    <select id="tecnico" name="tecnico" style="width: 350px;">
+                        <option value="">Todos</option>
+                        {% for tecnico in tecnicos %}
+                            <option value="{{tecnico.id}}" {% if filters.status == tecnico.id|stringformat:"tecnico" %}selected{% endif %}>{{tecnico.first_name}} {{tecnico.last_name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
 
                 <div class="input-field">
                     <label for="status">Status</label>
@@ -187,7 +195,15 @@
 
                         <div class="ticket-details">
                             <span><i class="fas fa-user"></i> {{ticket.created_by.first_name}} {{ticket.created_by.last_name}}</span>
-                            <span><i class="fas fa-tags"></i> {{ticket.title.category}}</span>
+                            <span>
+                                <i class="fas fa-building"></i>
+
+                                {% if user.profile.departamento %}
+                                    {{ user.profile.departamento }}
+                                {% else %}
+                                    Departamento não informado
+                                {% endif %}
+                            </span>
                             <span>
                                 <i class="fas fa-user-gear"></i>
                                 {% if ticket.assigned_to %}

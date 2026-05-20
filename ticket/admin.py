@@ -32,6 +32,7 @@ class TicketAdmin(admin.ModelAdmin):
 class TicketStatusAdmin(admin.ModelAdmin):
     
     list_display = [
+        "id",
         "name",
     ]
 

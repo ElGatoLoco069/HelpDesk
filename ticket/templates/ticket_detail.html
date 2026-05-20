@@ -88,7 +88,7 @@
                 </div>
                 <div>
                     <strong>{{ ticket.assigned_to.first_name|default:ticket.assigned_to.username }} {{ ticket.assigned_to.last_name }}</strong>
-                    <span>{{ ticket.assigned_to.email|default:"E-mail nao informado" }}</span>
+                    <span>{{ ticket.assigned_to.profile.telefone|default:"E-mail nao informado" }}</span>
                 </div>
             </div>
             {% else %}
