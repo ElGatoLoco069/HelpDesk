@@ -11,11 +11,10 @@ from django.utils import timezone
 from django.db.models import Count, Q
 from datetime import timedelta
 
-# Create your views here.
 
 @method_decorator(login_required(login_url="/"), name="dispatch")
 class HomeView(View):
-    
+
     def get(self, request):
 
         search = (request.GET.get("search") or "").strip()
@@ -23,7 +22,9 @@ class HomeView(View):
         priority_filter = request.GET.get("priority") or ""
         tecnico_filter = request.GET.get("tecnico") or ""
 
-        # Validação dos filtros
+        # =========================
+        # VALIDAÇÃO DOS FILTROS
+        # =========================
         if status_filter and not status_filter.isdigit():
             status_filter = ""
 
@@ -33,36 +34,56 @@ class HomeView(View):
         if tecnico_filter and not tecnico_filter.isdigit():
             tecnico_filter = ""
 
-        # Dados auxiliares
+        # =========================
+        # DADOS AUXILIARES
+        # =========================
         status = list(
-            Ticket_Status.objects.filter(status=True).order_by("id")
+            Ticket_Status.objects.filter(
+                status=True
+            ).order_by("id")
         )
 
         prioritys = list(
-            Priority.objects.filter(status=True).order_by("id")
+            Priority.objects.filter(
+                status=True
+            ).order_by("id")
         )
 
         done_status = next(
-            (item for item in status if item.name.lower() == "concluido"),
+            (
+                item for item in status
+                if item.name.lower() == "concluido"
+            ),
             None
         )
 
         in_service_status = next(
-            (item for item in status if item.name.lower() == "em andamento"),
+            (
+                item for item in status
+                if item.name.lower() == "em andamento"
+            ),
             None
         )
 
         waiting_status = next(
-            (item for item in status if item.name.lower() == "aguardando"),
+            (
+                item for item in status
+                if item.name.lower() == "aguardando"
+            ),
             None
         )
 
         high_priority = next(
-            (item for item in prioritys if item.name.lower() == "alta"),
+            (
+                item for item in prioritys
+                if item.name.lower() == "alta"
+            ),
             None
         )
 
-        # Query base
+        # =========================
+        # QUERY BASE
+        # =========================
         base_tickets = Ticket.objects.select_related(
             "title",
             "title__category",
@@ -72,24 +93,46 @@ class HomeView(View):
             "assigned_to",
         )
 
-        # Tickets ativos
-        active_tickets = base_tickets
-
-        # Se NÃO estiver filtrando por concluído,
-        # esconde os chamados concluídos
-        if done_status:
-            if not status_filter or int(status_filter) != done_status.id:
-                active_tickets = active_tickets.exclude(status=done_status)
+        # =========================
+        # QUERY DOS INDICADORES
+        # =========================
+        dashboard_tickets = base_tickets
 
         # Usuário comum vê apenas os próprios chamados
         if not request.user.profile.is_support:
-            active_tickets = active_tickets.filter(
+            dashboard_tickets = dashboard_tickets.filter(
                 created_by=request.user
             )
 
-        tickets = active_tickets
+        # Remove concluídos do dashboard
+        if done_status:
+            dashboard_tickets = dashboard_tickets.exclude(
+                status=done_status
+            )
 
-        # Busca textual
+        # =========================
+        # QUERY DA LISTAGEM
+        # =========================
+        tickets = dashboard_tickets
+
+        # Se usuário filtrar concluídos,
+        # utiliza base original
+        if (
+            done_status and
+            status_filter and
+            int(status_filter) == done_status.id
+        ):
+
+            tickets = base_tickets
+
+            if not request.user.profile.is_support:
+                tickets = tickets.filter(
+                    created_by=request.user
+                )
+
+        # =========================
+        # BUSCA TEXTUAL
+        # =========================
         if search:
             tickets = tickets.filter(
                 Q(hash__icontains=search) |
@@ -98,36 +141,58 @@ class HomeView(View):
                 Q(created_by__last_name__icontains=search)
             )
 
-        # Filtro por status
+        # =========================
+        # FILTRO STATUS
+        # =========================
         if status_filter:
-            tickets = tickets.filter(status_id=status_filter)
+            tickets = tickets.filter(
+                status_id=status_filter
+            )
 
-        # Filtro por prioridade
+        # =========================
+        # FILTRO PRIORIDADE
+        # =========================
         if priority_filter:
-            tickets = tickets.filter(priority_id=priority_filter)
+            tickets = tickets.filter(
+                priority_id=priority_filter
+            )
 
-        # Filtro por técnico
+        # =========================
+        # FILTRO TÉCNICO
+        # =========================
         if tecnico_filter:
             tickets = tickets.filter(
                 assigned_to__id=tecnico_filter
             )
 
-        # Ordenação
-        tickets = tickets.order_by("-created_at")[:50]
+        # =========================
+        # ORDENAÇÃO
+        # =========================
+        tickets = tickets.order_by(
+            "-created_at"
+        )[:50]
 
-        # Chamados que precisam de atenção
+        # =========================
+        # CHAMADOS DE ATENÇÃO
+        # =========================
         attention_tickets = (
-            active_tickets
+            dashboard_tickets
             .filter(priority=high_priority)
             .order_by("-updated_at")[:5]
             if high_priority else []
         )
 
-        # Métricas
+        # =========================
+        # MÉTRICAS
+        # =========================
         hoje = timezone.now().date()
-        stale_limit = timezone.now() - timedelta(hours=24)
 
-        counters = active_tickets.aggregate(
+        stale_limit = (
+            timezone.now() - timedelta(hours=24)
+        )
+
+        counters = dashboard_tickets.aggregate(
+
             open_tickets=Count("id"),
 
             in_service=Count(
@@ -178,9 +243,11 @@ class HomeView(View):
         open_today = counters["open_today"]
         stale_waiting = counters["stale_waiting"]
 
-        # Resumo por status
+        # =========================
+        # RESUMO POR STATUS
+        # =========================
         status_counts = dict(
-            active_tickets
+            dashboard_tickets
             .values("status_id")
             .annotate(total=Count("id"))
             .values_list("status_id", "total")
@@ -190,7 +257,10 @@ class HomeView(View):
 
         for status_item in status:
 
-            count = status_counts.get(status_item.id, 0)
+            count = status_counts.get(
+                status_item.id,
+                0
+            )
 
             percent = 0
 
@@ -205,11 +275,19 @@ class HomeView(View):
                 "percent": percent,
             })
 
-        # Técnicos
+        # =========================
+        # TÉCNICOS
+        # =========================
         tecnicos = User.objects.filter(
             profile__is_support=True
+        ).order_by(
+            "first_name",
+            "last_name"
         )
 
+        # =========================
+        # RENDER
+        # =========================
         return render(
             request,
             "home.html",
