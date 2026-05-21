@@ -3,11 +3,13 @@ from django.views.generic import View
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.contrib import messages
 
 from registers.models import Category, Priority, Subcategory
 from ticket.models import Ticket, TicketAttachment, TicketReport, Ticket_Status, TicketInteraction
 from accounts.models import Profile
+from notifications.models import UserNotification
 
 import random
 import string
@@ -17,6 +19,40 @@ from notifications.views import SendNotification
 
 MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
 ACCEPTED_ATTACHMENT_TYPES = {"image/png", "image/jpeg", "application/pdf"}
+
+STATUS_CONCLUIDO = "concluido"
+STATUS_PROPOSTA = "proposta de solucao"
+
+
+def normalize_status_name(name):
+    return (name or "").strip().lower().replace("ç", "c").replace("ã", "a")
+
+
+def get_status_by_name(*names):
+    normalized = [normalize_status_name(name) for name in names]
+
+    for status in Ticket_Status.objects.filter(status=True):
+        if normalize_status_name(status.name) in normalized:
+            return status
+
+    return None
+
+
+def get_solution_status():
+    status = get_status_by_name(STATUS_PROPOSTA, "proposta de solução")
+
+    if status:
+        return status
+
+    return Ticket_Status.objects.create(
+        name="Proposta de Solucao",
+        color="warning",
+        status=True
+    )
+
+
+def get_done_status():
+    return get_status_by_name(STATUS_CONCLUIDO, "concluído")
 
 @method_decorator(login_required(login_url="/"), name="dispatch")
 class TicketView(View):
@@ -169,7 +205,6 @@ class TicketDetailView(View):
             )
 
             interactions = TicketInteraction.objects.filter(ticket=ticket)
-
             return render(
                 request,
                 "ticket_detail.html",
@@ -219,11 +254,20 @@ class TicketEditView(View):
        
     def get_context(self, request, ticket):
         interactions = TicketInteraction.objects.filter(ticket=ticket)
+        solution_status = get_solution_status()
+        done_status = get_done_status()
+        status_options = list(Ticket_Status.objects.filter(status=True).order_by("id"))
+
+        if done_status and ticket.status_id != done_status.id:
+            status_options = [item for item in status_options if item.id != done_status.id]
+
+        if solution_status.id not in [item.id for item in status_options]:
+            status_options.append(solution_status)
 
         return {
             "active_page": "home",
             "ticket": ticket,
-            "status": Ticket_Status.objects.filter(status=True).order_by("id"),
+            "status": status_options,
             "priorities": Priority.objects.filter(status=True).order_by("id"),
             "technicians": self.get_support_users,
             "can_add_report": self.is_ticket_technician(request.user, ticket),
@@ -252,6 +296,16 @@ class TicketEditView(View):
 
             if action == "create_report":
                 return self.create_report(request, ticket)
+
+            if action == "respond_solution":
+                return self.respond_solution(request, ticket)
+
+            if action == "evaluate_service":
+                return self.evaluate_service(request, ticket)
+
+            if not request.user.profile.is_support:
+                messages.warning(request, "Apenas usuarios de suporte podem editar o chamado.")
+                return redirect("ticket_detail", ticket_id=ticket.id)
 
             status_id = request.POST.get("status")
             priority_id = request.POST.get("priority")
@@ -322,9 +376,19 @@ class TicketEditView(View):
                     ticket.created_by
                 )
                 
-            if not TicketReport.objects.filter(ticket=ticket).exists() and status_id ==  5:
+            selected_status = Ticket_Status.objects.get(id=status_id)
+            selected_status_name = normalize_status_name(selected_status.name)
+            done_status = get_done_status()
+            solution_status = get_solution_status()
+            is_closing_status = (
+                selected_status_name in [STATUS_CONCLUIDO, STATUS_PROPOSTA] or
+                (done_status and status_id == done_status.id) or
+                status_id == solution_status.id
+            )
+
+            if not TicketReport.objects.filter(ticket=ticket).exists() and is_closing_status:
                 
-                messages.warning(request, "Para finalizar o chamado é necessario adicionar o relatorio tecnico!.")
+                messages.warning(request, "Para propor a solucao do chamado e necessario adicionar o relatorio tecnico!.")
 
                 return render(
                     request,
@@ -332,18 +396,29 @@ class TicketEditView(View):
                     self.get_context(request, ticket)
                 )
 
+            if done_status and status_id == done_status.id:
+                status_id = solution_status.id
+                selected_status = solution_status
+                messages.success(request, "O chamado foi movido para proposta de solucao para validacao do solicitante.")
+
             if status_id != ticket.status.id:
                 SendNotification.success(request,
                 "Status do chamado Atualizado",
-                f"O chamado {ticket.hash} esta {Ticket_Status.objects.get(id=status_id)}",
+                f"O chamado {ticket.hash} esta {selected_status}",
                 False, ticket.created_by)
 
-            if status_id == 5:
+            if status_id == solution_status.id and ticket.status_id != solution_status.id:
                 
-                SendNotification.success(request, 
-                "Chamado concluido", 
-                f"O tecnico {ticket.assigned_to.get_full_name()} acaba de concluir o chamado {ticket.hash}!",
-                False, ticket.created_by)
+                SendNotification.warning(request, 
+                "Proposta de solucao", 
+                f"O tecnico {ticket.assigned_to.get_full_name() if ticket.assigned_to else 'responsavel'} enviou uma proposta de solucao para o chamado {ticket.hash}. Confirme se foi resolvido.",
+                False,
+                ticket.created_by,
+                "solution_validation",
+                ticket.id)
+                ticket.solution_proposed_at = timezone.now()
+                ticket.solution_responded_at = None
+                ticket.requester_solution_accepted = None
                 
 
             # =========================
@@ -412,6 +487,163 @@ class TicketEditView(View):
         False, ticket.created_by)
 
         messages.success(request, "Relatorio tecnico adicionado com sucesso!")
+        return redirect("ticket_detail", ticket_id=ticket.id)
+
+
+    def respond_solution(self, request, ticket):
+
+        if request.user != ticket.created_by:
+            messages.warning(request, "Apenas o solicitante pode validar a proposta de solucao.")
+            return redirect("ticket_detail", ticket_id=ticket.id)
+
+        solution_status = get_solution_status()
+
+        if ticket.status_id != solution_status.id or ticket.requester_solution_accepted is not None:
+            messages.warning(request, "Este chamado nao possui proposta de solucao pendente.")
+            return redirect("ticket_detail", ticket_id=ticket.id)
+
+        resolved = request.POST.get("resolved") == "yes"
+        comment = (request.POST.get("solution_comment") or "").strip()
+
+        ticket.requester_solution_accepted = resolved
+        ticket.solution_responded_at = timezone.now()
+
+        if resolved:
+            done_status = get_done_status()
+
+            if not done_status:
+                done_status = Ticket_Status.objects.create(
+                    name="Concluido",
+                    color="open",
+                    status=True
+                )
+
+            ticket.status = done_status
+            ticket.evaluation_requested_at = timezone.now()
+            ticket.save(update_fields=[
+                "status",
+                "requester_solution_accepted",
+                "solution_responded_at",
+                "evaluation_requested_at",
+                "updated_at",
+            ])
+
+            TicketInteraction.objects.create(
+                ticket=ticket,
+                user=request.user,
+                message=comment or "Solicitante confirmou que a proposta resolveu o chamado.",
+                interaction_type="requester"
+            )
+
+            SendNotification.success(
+                request,
+                "Avalie o atendimento",
+                f"O chamado {ticket.hash} foi concluido. Por favor avalie o atendimento recebido.",
+                False,
+                ticket.created_by,
+                "service_evaluation",
+                ticket.id
+            )
+
+            UserNotification.objects.filter(
+                user=request.user,
+                notification__ticket_id=ticket.id,
+                notification__action_kind="solution_validation"
+            ).update(read=True, hidden=True)
+
+            messages.success(request, "Chamado concluido. A avaliacao do atendimento ja esta disponivel.")
+            return redirect("ticket_detail", ticket_id=ticket.id)
+
+        in_service_status = get_status_by_name("em andamento", "aguardando", "novo")
+
+        if in_service_status:
+            ticket.status = in_service_status
+
+        ticket.save(update_fields=[
+            "status",
+            "requester_solution_accepted",
+            "solution_responded_at",
+            "updated_at",
+        ])
+
+        TicketInteraction.objects.create(
+            ticket=ticket,
+            user=request.user,
+            message=comment or "Solicitante informou que a proposta nao resolveu o chamado.",
+            interaction_type="requester"
+        )
+
+        if ticket.assigned_to:
+            SendNotification.warning(
+                request,
+                "Chamado nao resolvido",
+                f"O solicitante marcou o chamado {ticket.hash} como nao resolvido. Revise a proposta de solucao.",
+                False,
+                ticket.assigned_to
+            )
+
+        UserNotification.objects.filter(
+            user=request.user,
+            notification__ticket_id=ticket.id,
+            notification__action_kind="solution_validation"
+        ).update(read=True, hidden=True)
+
+        messages.warning(request, "O tecnico responsavel foi notificado para revisar o atendimento.")
+        return redirect("ticket_detail", ticket_id=ticket.id)
+
+
+    def evaluate_service(self, request, ticket):
+
+        if request.user != ticket.created_by:
+            messages.warning(request, "Apenas o solicitante pode avaliar este atendimento.")
+            return redirect("ticket_detail", ticket_id=ticket.id)
+
+        done_status = get_done_status()
+
+        if not done_status or ticket.status_id != done_status.id:
+            messages.warning(request, "A avaliacao fica disponivel apenas apos a conclusao do chamado.")
+            return redirect("ticket_detail", ticket_id=ticket.id)
+
+        if ticket.satisfaction_rating is not None:
+            messages.warning(request, "Este atendimento ja foi avaliado.")
+            return redirect("ticket_detail", ticket_id=ticket.id)
+
+        try:
+            rating = int(request.POST.get("rating"))
+        except (TypeError, ValueError):
+            messages.warning(request, "Selecione uma nota valida.")
+            return redirect("ticket_detail", ticket_id=ticket.id)
+
+        if rating < 1 or rating > 5:
+            messages.warning(request, "A nota deve ficar entre 1 e 5.")
+            return redirect("ticket_detail", ticket_id=ticket.id)
+
+        ticket.satisfaction_rating = rating
+        ticket.satisfaction_comment = (request.POST.get("comment") or "").strip()
+        ticket.evaluated_at = timezone.now()
+        ticket.save(update_fields=[
+            "satisfaction_rating",
+            "satisfaction_comment",
+            "evaluated_at",
+            "updated_at",
+        ])
+
+        if ticket.assigned_to:
+            SendNotification.success(
+                request,
+                "Atendimento avaliado",
+                f"O solicitante avaliou o chamado {ticket.hash} com nota {rating}/5.",
+                False,
+                ticket.assigned_to
+            )
+
+        UserNotification.objects.filter(
+            user=request.user,
+            notification__ticket_id=ticket.id,
+            notification__action_kind="service_evaluation"
+        ).update(read=True, hidden=True)
+
+        messages.success(request, "Obrigado pela avaliacao do atendimento!")
         return redirect("ticket_detail", ticket_id=ticket.id)
 
 

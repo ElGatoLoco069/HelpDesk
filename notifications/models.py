@@ -33,6 +33,12 @@ class NotificationType(models.Model):
 
 class Notification(models.Model):
 
+    ACTION_KINDS = [
+        ("", "Nenhuma"),
+        ("solution_validation", "Validacao de solucao"),
+        ("service_evaluation", "Avaliacao de atendimento"),
+    ]
+
     title = models.CharField(max_length=150)
     description = models.TextField()
 
@@ -42,6 +48,8 @@ class Notification(models.Model):
     )
 
     send_all = models.BooleanField(default=False)
+    action_kind = models.CharField(max_length=40, choices=ACTION_KINDS, blank=True, default="")
+    ticket_id = models.PositiveIntegerField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

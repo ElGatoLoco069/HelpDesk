@@ -1,0 +1,70 @@
+{% for item in notifications %}
+
+<div class="notification-item {% if not item.read %}unread{% endif %}">
+
+    <div class="notification-icon {{ item.notification.type.color }}">
+        <i class="{{ item.notification.type.icon }}"></i>
+    </div>
+
+    <div class="notification-info">
+
+        <strong>
+            {{ item.notification.title }}
+        </strong>
+
+        <span>
+            {{ item.notification.description }}
+        </span>
+
+        <small>
+            {{ item.created_at|timesince }}
+        </small>
+
+        {% if item.notification.action_kind == "solution_validation" and item.notification.ticket_id %}
+        <div class="notification-actions">
+            <form action="{% url 'ticket_edit' item.notification.ticket_id %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="respond_solution">
+                <input type="hidden" name="resolved" value="yes">
+                <button class="notification-action success" type="submit">
+                    <i class="fas fa-check"></i>
+                    Resolvido
+                </button>
+            </form>
+
+            <form action="{% url 'ticket_edit' item.notification.ticket_id %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="respond_solution">
+                <input type="hidden" name="resolved" value="no">
+                <button class="notification-action warning" type="submit">
+                    <i class="fas fa-rotate-left"></i>
+                    Nao resolvido
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if item.notification.action_kind == "service_evaluation" and item.notification.ticket_id %}
+        <form action="{% url 'ticket_edit' item.notification.ticket_id %}" method="post" class="notification-rating">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="evaluate_service">
+
+            {% for rating in "12345" %}
+            <button class="rating-action" name="rating" value="{{ rating }}" type="submit">
+                {{ rating }}
+            </button>
+            {% endfor %}
+        </form>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% empty %}
+
+<div class="notification-empty">
+    Nenhuma notificacao encontrada.
+</div>
+
+{% endfor %}

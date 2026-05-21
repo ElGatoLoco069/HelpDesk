@@ -1,0 +1,60 @@
+{% load humanize %}
+
+{% if tickets %}
+    {% for ticket in tickets %}
+        <article class="ticket-item">
+            <div class="ticket-main">
+                <div class="ticket-id">
+                    <strong>{{ticket.hash}}</strong>
+                    <span class="date">{{ticket.created_at|date:"d/m/Y H:i"}}</span>
+                </div>
+                <h3 class="ticket-title">{{ticket.title}}</h3>
+                <div class="ticket-meta">
+                    <span class="badge-status {{ticket.priority.color}}">{{ticket.priority}}</span>
+                    <span>
+                        <i class="fas fa-clock"></i>
+                        Atualizado {{ ticket.updated_at|naturaltime }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="ticket-details">
+                <span><i class="fas fa-user"></i> {{ticket.created_by.first_name}} {{ticket.created_by.last_name}}</span>
+                <span>
+                    <i class="fas fa-building"></i>
+
+                    {% if ticket.created_by.profile.departamento %}
+                        {{ ticket.created_by.profile.departamento }}
+                    {% else %}
+                        Departamento nao informado
+                    {% endif %}
+                </span>
+                <span>
+                    <i class="fas fa-user-gear"></i>
+                    {% if ticket.assigned_to %}
+                        {{ticket.assigned_to.first_name|default:ticket.assigned_to.username}} {{ticket.assigned_to.last_name}}
+                    {% else %}
+                        Sem tecnico
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="ticket-status">
+                <span class="badge-status {{ticket.status.color}}">{{ticket.status}}</span>
+            </div>
+
+            <div class="ticket-actions">
+                <a class="action-btn view" href="{% url 'ticket_detail' ticket.id %}" title="Visualizar {{ticket.hash}}"><i class="fas fa-eye"></i></a>
+                {% if request.user.profile.is_support %}
+                    <a class="action-btn edit" href="{% url 'ticket_edit' ticket.id %}" title="Editar {{ticket.hash}}"><i class="fas fa-pen"></i></a>
+                {% endif %}
+            </div>
+        </article>
+    {% endfor %}
+{% else %}
+    <div class="empty-ticket-state">
+        <i class="fas fa-inbox"></i>
+        <strong>Nenhum chamado encontrado</strong>
+        <span>Ajuste os filtros ou abra um novo chamado.</span>
+    </div>
+{% endif %}

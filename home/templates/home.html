@@ -182,65 +182,14 @@
             </form>
         </div>
 
-        <section class="ticket-list-body">
-            {% if tickets %}
-                {% for ticket in tickets %}
-                    <article class="ticket-item">
-                        <div class="ticket-main">
-                            <div class="ticket-id">
-                                <strong>{{ticket.hash}}</strong>
-                                <span class="date">{{ticket.created_at|date:"d/m/Y H:i"}}</span>
-                            </div>
-                            <h3 class="ticket-title">{{ticket.title}}</h3>
-                            <div class="ticket-meta">
-                                <span class="badge-status {{ticket.priority.color}}">{{ticket.priority}}</span>
-                                <span>
-                                    <i class="fas fa-clock"></i>
-                                    Atualizado {{ ticket.updated_at|naturaltime }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="ticket-details">
-                            <span><i class="fas fa-user"></i> {{ticket.created_by.first_name}} {{ticket.created_by.last_name}}</span>
-                            <span>
-                                <i class="fas fa-building"></i>
-
-                                {% if user.profile.departamento %}
-                                    {{ user.profile.departamento }}
-                                {% else %}
-                                    Departamento não informado
-                                {% endif %}
-                            </span>
-                            <span>
-                                <i class="fas fa-user-gear"></i>
-                                {% if ticket.assigned_to %}
-                                    {{ticket.assigned_to.first_name|default:ticket.assigned_to.username}} {{ticket.assigned_to.last_name}}
-                                {% else %}
-                                    Sem tecnico
-                                {% endif %}
-                            </span>
-                        </div>
-
-                        <div class="ticket-status">
-                            <span class="badge-status {{ticket.status.color}}">{{ticket.status}}</span>
-                        </div>
-
-                        <div class="ticket-actions">
-                            <a class="action-btn view" href="{% url 'ticket_detail' ticket.id %}" title="Visualizar {{ticket.hash}}"><i class="fas fa-eye"></i></a>
-                            {% if request.user.profile.is_support %}
-                                <a class="action-btn edit" href="{% url 'ticket_edit' ticket.id %}" title="Editar {{ticket.hash}}"><i class="fas fa-pen"></i></a>
-                            {% endif %}
-                        </div>
-                    </article>
-                {% endfor %}
-            {% else %}
-                <div class="empty-ticket-state">
-                    <i class="fas fa-inbox"></i>
-                    <strong>Nenhum chamado encontrado</strong>
-                    <span>Ajuste os filtros ou abra um novo chamado.</span>
-                </div>
-            {% endif %}
+        <section
+            class="ticket-list-body"
+            id="ticketListBody"
+            data-refresh-url="{% url 'home' %}"
+            data-refresh-seconds="{{ request.user.profile.ticket_auto_refresh_seconds|default:30 }}"
+            data-auto-refresh="{% if request.user.profile.is_support %}true{% else %}false{% endif %}"
+        >
+            {% include "partials/ticket_list_items.html" %}
         </section>
     </section>
 
@@ -269,6 +218,37 @@
                 form.submit();
             }, 500); // 500ms
         });
+
+        const ticketListBody = document.getElementById("ticketListBody");
+
+        if (ticketListBody?.dataset.autoRefresh === "true") {
+            const refreshSeconds = Number(ticketListBody.dataset.refreshSeconds || 30);
+            const refreshMs = Math.max(refreshSeconds, 10) * 1000;
+
+            async function refreshTicketList() {
+                try {
+                    const params = new URLSearchParams(new FormData(form));
+                    params.set("partial", "tickets");
+
+                    const response = await fetch(`${ticketListBody.dataset.refreshUrl}?${params.toString()}`, {
+                        credentials: "same-origin",
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        ticketListBody.innerHTML = data.html;
+                    }
+                } catch (error) {
+                    console.error("Erro ao atualizar chamados:", error);
+                }
+            }
+
+            setInterval(refreshTicketList, refreshMs);
+        }
     });
 </script>
 </body>

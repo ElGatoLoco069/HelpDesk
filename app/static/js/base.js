@@ -115,7 +115,46 @@ const notificationBtn = document.querySelector(".notification-btn");
 const notificationModal = document.getElementById("notificationModal");
 const notificationOverlay = document.querySelector(".notification-overlay");
 const closeNotification = document.querySelector(".close-notification");
-const badge = document.querySelector(".badge");
+const notificationBody = document.getElementById("notificationBody");
+
+
+function getBadge() {
+    return document.querySelector(".badge");
+}
+
+
+function updateNotificationBadge(count) {
+
+    if (!notificationBtn) return;
+
+    let currentBadge = getBadge();
+
+    if (count > 0 && !currentBadge) {
+
+        currentBadge = document.createElement("span");
+        currentBadge.classList.add("badge");
+        notificationBtn.appendChild(currentBadge);
+
+    }
+
+    if (count > 0) {
+
+        currentBadge.textContent = count;
+        newNotification(count);
+
+        if (markReadBtn) {
+            markReadBtn.innerHTML = "Marcar todas como lidas";
+            markReadBtn.disabled = false;
+        }
+
+        return;
+
+    }
+
+    currentBadge?.remove();
+    notificationBtn.classList.remove("show-badge");
+
+}
 
 
 /**
@@ -124,9 +163,11 @@ const badge = document.querySelector(".badge");
  */
 function newNotification(count = 1) {
 
-    if (!notificationBtn || !badge) return;
+    const currentBadge = getBadge();
 
-    badge.textContent = count;
+    if (!notificationBtn || !currentBadge) return;
+
+    currentBadge.textContent = count;
 
     notificationBtn.classList.add("animate");
 
@@ -215,9 +256,9 @@ document.addEventListener("keydown", (e) => {
 // ANIMA BADGE APENAS SE EXISTIR
 // ================================
 
-if (badge) {
+if (getBadge()) {
 
-    const totalNotifications = Number(badge.textContent.trim());
+    const totalNotifications = Number(getBadge().textContent.trim());
 
     if (totalNotifications > 0) {
 
@@ -305,9 +346,7 @@ if (markReadBtn) {
                     });
 
                 // Remove badge
-                if (badge) {
-                    badge.remove();
-                }
+                getBadge()?.remove();
 
                 // Feedback visual
                 markReadBtn.innerHTML = `
@@ -326,5 +365,147 @@ if (markReadBtn) {
         }
 
     });
+
+}
+
+
+// ================================
+// ATUALIZAR NOTIFICAÇÕES
+// ================================
+
+async function refreshNotifications() {
+
+    if (!notificationBody?.dataset.refreshUrl) return;
+
+    try {
+
+        const response = await fetch(notificationBody.dataset.refreshUrl, {
+            credentials: "same-origin",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        const data = await response.json();
+
+        applyNotificationsPayload(data);
+
+    } catch (error) {
+
+        console.error("Erro ao atualizar notificações:", error);
+
+    }
+
+}
+
+
+function applyNotificationsPayload(data) {
+
+    if (!data?.success || !notificationBody) return;
+
+    notificationBody.innerHTML = data.html;
+    notificationBody.dataset.latestNotificationId = data.latest_notification_id || 0;
+    updateNotificationBadge(Number(data.unread_notifications || 0));
+    setupNotificationShowMore();
+
+}
+
+
+function startNotificationEvents() {
+
+    if (!notificationBody?.dataset.eventsUrl || !window.EventSource) return false;
+
+    const lastSeen = notificationBody.dataset.latestNotificationId || "0";
+    const url = `${notificationBody.dataset.eventsUrl}?last_seen=${encodeURIComponent(lastSeen)}`;
+    const source = new EventSource(url);
+
+    source.onmessage = (event) => {
+
+        try {
+            applyNotificationsPayload(JSON.parse(event.data));
+        } catch (error) {
+            console.error("Erro ao processar notificações:", error);
+        }
+
+        source.close();
+        startNotificationEvents();
+
+    };
+
+    source.addEventListener("heartbeat", () => {
+
+        source.close();
+        startNotificationEvents();
+
+    });
+
+    source.onerror = () => {
+
+        source.close();
+        setTimeout(startNotificationEvents, 5000);
+
+    };
+
+    return true;
+
+}
+
+
+if (notificationBody) {
+
+    setupNotificationShowMore();
+
+    refreshNotifications().then(() => {
+
+        if (!startNotificationEvents()) {
+            setInterval(refreshNotifications, 10000);
+        }
+
+    });
+
+}
+
+
+// ================================
+// VER MAIS NOTIFICAÇÕES
+// ================================
+
+function setupNotificationShowMore() {
+
+    if (!notificationBody) return;
+
+    const visibleLimit = 4;
+    const items = Array.from(notificationBody.querySelectorAll(".notification-item"));
+    const oldButton = notificationBody.querySelector(".notification-more-btn");
+
+    oldButton?.remove();
+
+    if (items.length <= visibleLimit) {
+        items.forEach(item => item.classList.remove("is-hidden"));
+        return;
+    }
+
+    items.forEach((item, index) => {
+        item.classList.toggle("is-hidden", index >= visibleLimit);
+    });
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "notification-more-btn";
+    button.textContent = `Ver mais ${items.length - visibleLimit}`;
+    button.dataset.expanded = "false";
+
+    button.addEventListener("click", () => {
+        const expanded = button.dataset.expanded === "true";
+
+        items.forEach((item, index) => {
+            item.classList.toggle("is-hidden", !expanded && index >= visibleLimit);
+        });
+
+        button.dataset.expanded = expanded ? "false" : "true";
+        button.textContent = expanded ? `Ver mais ${items.length - visibleLimit}` : "Mostrar menos";
+    });
+
+    notificationBody.appendChild(button);
 
 }

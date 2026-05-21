@@ -2,8 +2,11 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.views.generic import View
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from ldap3 import Server, Connection, ALL, SUBTREE
 from django.contrib import messages
+from notifications.views import SendNotification
 
 class AccountsView(View):
     
@@ -102,3 +105,89 @@ class AccountsView(View):
 def logout_view(request):
     logout(request)
     return redirect("account")
+
+
+@method_decorator(login_required(login_url="/"), name="dispatch")
+class SettingsView(View):
+
+    def get(self, request):
+        return render(
+            request,
+            "settings.html",
+            {
+                "active_page": "config",
+            }
+        )
+
+
+    def post(self, request):
+        action = request.POST.get("action")
+
+        if action == "update_profile":
+            return self.update_profile(request)
+
+        if action == "send_global_notification":
+            return self.send_global_notification(request)
+
+        messages.warning(request, "Acao invalida.")
+        return redirect("settings")
+
+
+    def update_profile(self, request):
+        first_name = (request.POST.get("first_name") or "").strip()
+        last_name = (request.POST.get("last_name") or "").strip()
+        telefone = (request.POST.get("telefone") or "").strip()
+        departamento = (request.POST.get("departamento") or "").strip()
+        refresh_seconds = request.POST.get("ticket_auto_refresh_seconds")
+
+        if not first_name:
+            messages.warning(request, "Informe seu nome.")
+            return redirect("settings")
+
+        request.user.first_name = first_name
+        request.user.last_name = last_name
+        request.user.save(update_fields=["first_name", "last_name"])
+
+        profile = request.user.profile
+        profile.telefone = telefone
+        profile.departamento = departamento
+
+        update_fields = ["telefone", "departamento"]
+
+        if profile.is_support:
+            try:
+                refresh_seconds = int(refresh_seconds)
+            except (TypeError, ValueError):
+                refresh_seconds = profile.ticket_auto_refresh_seconds
+
+            profile.ticket_auto_refresh_seconds = min(max(refresh_seconds, 10), 300)
+            update_fields.append("ticket_auto_refresh_seconds")
+
+        profile.save(update_fields=update_fields)
+
+        messages.success(request, "Perfil atualizado com sucesso!")
+        return redirect("settings")
+
+
+    def send_global_notification(self, request):
+        if not request.user.is_superuser:
+            messages.warning(request, "Apenas superadmins podem enviar notificacoes globais.")
+            return redirect("settings")
+
+        title = (request.POST.get("title") or "").strip()
+        description = (request.POST.get("description") or "").strip()
+
+        if len(title) < 4 or len(description) < 10:
+            messages.warning(request, "Informe um titulo e uma mensagem validos.")
+            return redirect("settings")
+
+        SendNotification.warning(
+            request,
+            title,
+            description,
+            True,
+            None
+        )
+
+        messages.success(request, "Notificacao enviada para todos os usuarios.")
+        return redirect("settings")

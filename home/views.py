@@ -1,6 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.http import JsonResponse
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 
 from ticket.models import Ticket, Ticket_Status
@@ -285,13 +287,7 @@ class HomeView(View):
             "last_name"
         )
 
-        # =========================
-        # RENDER
-        # =========================
-        return render(
-            request,
-            "home.html",
-            {
+        context = {
                 "active_page": "home",
 
                 "tickets": tickets,
@@ -317,5 +313,25 @@ class HomeView(View):
                     "tecnico": tecnico_filter,
                 },
             }
+
+        if request.GET.get("partial") == "tickets":
+            html = render_to_string(
+                "partials/ticket_list_items.html",
+                context,
+                request=request
+            )
+
+            return JsonResponse({
+                "success": True,
+                "html": html,
+            })
+
+        # =========================
+        # RENDER
+        # =========================
+        return render(
+            request,
+            "home.html",
+            context
         )
         

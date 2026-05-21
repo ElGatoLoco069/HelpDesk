@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<head>
+    <title>Configuracoes | Help Desk</title>
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}">
+</head>
+
+<body>
+    <section class="settings-header">
+        <div>
+            <span class="eyebrow">Configuracoes</span>
+            <h1>Perfil e notificacoes</h1>
+            <p>Atualize seus dados de contato e preferencia de identificacao no sistema.</p>
+        </div>
+    </section>
+
+    <section class="settings-tabs">
+        <input type="radio" name="settings_tab" id="tab-profile" checked>
+        {% if request.user.is_superuser %}
+        <input type="radio" name="settings_tab" id="tab-notifications">
+        {% endif %}
+
+        <div class="tab-list">
+            <label for="tab-profile">
+                <i class="fas fa-user"></i>
+                Perfil
+            </label>
+
+            {% if request.user.is_superuser %}
+            <label for="tab-notifications">
+                <i class="fas fa-bullhorn"></i>
+                Notificacoes
+            </label>
+            {% endif %}
+        </div>
+
+        <article class="settings-card tab-panel profile-panel">
+            <div class="settings-card-header">
+                <div>
+                    <h2>Dados do usuario</h2>
+                    <p>Essas informacoes aparecem nos chamados e no cabecalho do sistema.</p>
+                </div>
+                <i class="fas fa-id-card"></i>
+            </div>
+
+            <form method="post" class="settings-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_profile">
+
+                <div class="settings-grid">
+                    <label class="settings-field">
+                        <span>Nome</span>
+                        <input type="text" name="first_name" value="{{ request.user.first_name }}" maxlength="150" required>
+                    </label>
+
+                    <label class="settings-field">
+                        <span>Sobrenome</span>
+                        <input type="text" name="last_name" value="{{ request.user.last_name }}" maxlength="150">
+                    </label>
+
+                    <label class="settings-field">
+                        <span>Telefone/Ramal</span>
+                        <input type="text" name="telefone" value="{{ request.user.profile.telefone }}" maxlength="20" placeholder="Ex.: 3525 ou (45) 0000-0000">
+                    </label>
+
+                    <label class="settings-field">
+                        <span>Departamento</span>
+                        <input type="text" name="departamento" value="{{ request.user.profile.departamento }}" maxlength="100" placeholder="Ex.: Tecnologia da Informacao">
+                    </label>
+
+                    {% if request.user.profile.is_support %}
+                    <label class="settings-field">
+                        <span>Atualizacao dos chamados (segundos)</span>
+                        <input type="number" name="ticket_auto_refresh_seconds" value="{{ request.user.profile.ticket_auto_refresh_seconds }}" min="10" max="300" step="5">
+                    </label>
+                    {% endif %}
+                </div>
+
+                <div class="settings-actions">
+                    <button class="btn-primary" type="submit">
+                        <i class="fas fa-check"></i>
+                        Salvar perfil
+                    </button>
+                </div>
+            </form>
+        </article>
+
+        {% if request.user.is_superuser %}
+        <article class="settings-card tab-panel notifications-panel">
+            <div class="settings-card-header">
+                <div>
+                    <h2>Enviar notificacao global</h2>
+                    <p>A mensagem sera entregue para todos os usuarios ativos.</p>
+                </div>
+                <i class="fas fa-paper-plane"></i>
+            </div>
+
+            <form method="post" class="settings-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="send_global_notification">
+
+                <div class="settings-grid single">
+                    <label class="settings-field">
+                        <span>Titulo</span>
+                        <input type="text" name="title" maxlength="150" required placeholder="Ex.: Manutencao programada">
+                    </label>
+
+                    <label class="settings-field">
+                        <span>Mensagem</span>
+                        <textarea name="description" rows="7" required placeholder="Escreva a notificacao para todos os usuarios."></textarea>
+                    </label>
+                </div>
+
+                <div class="settings-actions">
+                    <button class="btn-primary" type="submit">
+                        <i class="fas fa-bullhorn"></i>
+                        Enviar para todos
+                    </button>
+                </div>
+            </form>
+        </article>
+        {% endif %}
+    </section>
+</body>
+{% endblock %}

@@ -1,6 +1,7 @@
 from django.db import models
 from registers.models import Subcategory, Priority
 from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 # Create your models here.
 
@@ -28,6 +29,17 @@ class Ticket(models.Model):
     assigned_to = models.ForeignKey(User, related_name="assigned_tickets", null=True, blank=True, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    solution_proposed_at = models.DateTimeField(null=True, blank=True)
+    solution_responded_at = models.DateTimeField(null=True, blank=True)
+    requester_solution_accepted = models.BooleanField(null=True, blank=True)
+    evaluation_requested_at = models.DateTimeField(null=True, blank=True)
+    satisfaction_rating = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    satisfaction_comment = models.TextField(blank=True)
+    evaluated_at = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
         return self.hash

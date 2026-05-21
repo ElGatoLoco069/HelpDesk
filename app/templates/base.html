@@ -86,7 +86,7 @@
                     </li>
 
                     <li class="menu-item">
-                        <a href="#" class="menu-link {% if active_page == 'config' %}active{% endif %}"
+                        <a href="{% url 'settings' %}" class="menu-link {% if active_page == 'config' %}active{% endif %}"
                         title="Acessar Configurações do sistema">
                             <i class="fas fa-gear"></i>
                             <span class="menu-label">Configurações</span>
@@ -178,41 +178,13 @@
                         </button>
                     </div>
 
-                    <div class="notification-body">
-
-                        {% for item in notifications %}
-
-                        <div class="notification-item {% if not item.read %}unread{% endif %}">
-
-                            <div class="notification-icon {{ item.notification.type.color }}">
-                                <i class="{{ item.notification.type.icon }}"></i>
-                            </div>
-
-                            <div class="notification-info">
-
-                                <strong>
-                                    {{ item.notification.title }}
-                                </strong>
-
-                                <span>
-                                    {{ item.notification.description }}
-                                </span>
-
-                                <small>
-                                    {{ item.created_at|timesince }}
-                                </small>
-
-                            </div>
-
-                        </div>
-
-                        {% empty %}
-
-                        <div class="notification-empty">
-                            Nenhuma notificação encontrada.
-                        </div>
-
-                        {% endfor %}
+                    <div
+                        class="notification-body"
+                        id="notificationBody"
+                        data-refresh-url="{% url 'notifications_snapshot' %}"
+                        data-events-url="{% url 'notifications_events' %}"
+                    >
+                        {% include "notification_items.html" %}
 
                     </div>
 

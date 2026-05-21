@@ -18,16 +18,17 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from accounts.views import AccountsView, logout_view
+from accounts.views import AccountsView, SettingsView, logout_view
 from home.views import HomeView
 from ticket.views import TicketDetailView, TicketEditView, TicketView, AddMessage
 from registers.views import CategoryView, get_subcategories
-from notifications.views import mark_notifications_read
+from notifications.views import mark_notifications_read, notifications_events, notifications_snapshot
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", AccountsView.as_view(), name="account"),
     path("account/logout/", logout_view, name="logout"),
+    path("settings/", SettingsView.as_view(), name="settings"),
     path("home/", HomeView.as_view(), name="home"),
     path("registers/new_ticket/", TicketView.as_view(), name="new_ticket"),
     path("tickets/<int:ticket_id>/", TicketDetailView.as_view(), name="ticket_detail"),
@@ -36,6 +37,8 @@ urlpatterns = [
     path("registers/categories/", CategoryView.as_view(), name="categories"),
     path("subcategories/<int:category_id>/", get_subcategories, name="get_subcategories"),
     path("mark-read/", mark_notifications_read, name="mark_notifications_read"),
+    path("notifications/snapshot/", notifications_snapshot, name="notifications_snapshot"),
+    path("notifications/events/", notifications_events, name="notifications_events"),
 ]
 
 if settings.DEBUG:

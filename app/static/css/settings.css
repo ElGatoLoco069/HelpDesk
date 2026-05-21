@@ -1,0 +1,217 @@
+.settings-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin: 24px 0;
+    color: var(--text-color);
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    margin-bottom: 10px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: var(--input-background);
+    color: var(--primary-color);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.settings-header h1 {
+    margin-bottom: 4px;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.settings-header p,
+.settings-card-header p {
+    margin: 0;
+    color: var(--text-light);
+}
+
+.settings-tabs {
+    display: grid;
+    gap: 16px;
+    color: var(--text-color);
+}
+
+.settings-tabs>input {
+    display: none;
+}
+
+.tab-list {
+    display: inline-flex;
+    width: fit-content;
+    gap: 8px;
+    padding: 6px;
+    border-radius: 14px;
+    background: var(--card-background);
+}
+
+.tab-list label {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 14px;
+    border-radius: 10px;
+    color: var(--text-light);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+#tab-profile:checked~.tab-list label[for="tab-profile"],
+#tab-notifications:checked~.tab-list label[for="tab-notifications"] {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: var(--white-color);
+}
+
+.tab-panel {
+    display: none;
+}
+
+#tab-profile:checked~.profile-panel,
+#tab-notifications:checked~.notifications-panel {
+    display: block;
+}
+
+.settings-card {
+    max-width: 980px;
+    padding: 20px;
+    border-radius: 16px;
+    background: var(--card-background);
+}
+
+.settings-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.settings-card-header h2 {
+    margin: 0 0 4px;
+    color: var(--text-color);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.settings-card-header i {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 12px;
+    background: var(--input-background);
+    color: var(--primary-color);
+}
+
+.settings-form,
+.settings-grid,
+.settings-field {
+    display: grid;
+    gap: 14px;
+}
+
+.settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.settings-grid.single {
+    grid-template-columns: 1fr;
+}
+
+.settings-field span {
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.settings-field input,
+.settings-field textarea {
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    outline: none;
+    background: var(--input-background);
+    color: var(--text-color);
+    transition: 0.2s ease;
+}
+
+.settings-field input {
+    height: 46px;
+    padding: 0 12px;
+}
+
+.settings-field textarea {
+    min-height: 160px;
+    padding: 12px 14px;
+    resize: vertical;
+}
+
+.settings-field input:focus,
+.settings-field textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.16);
+}
+
+.settings-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-primary {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 15px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.18);
+}
+
+@media (max-width: 768px) {
+    .settings-header,
+    .settings-card-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .tab-list {
+        width: 100%;
+    }
+
+    .tab-list label {
+        flex: 1;
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-actions .btn-primary {
+        width: 100%;
+    }
+}

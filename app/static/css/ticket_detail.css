@@ -867,6 +867,76 @@
     box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
 }
 
+.resolution-panel {
+    border-left: 4px solid var(--warning-color);
+}
+
+.resolution-form {
+    display: grid;
+    gap: 16px;
+}
+
+.choice-grid,
+.rating-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.choice-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rating-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.choice-card,
+.rating-card {
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--input-background);
+    color: var(--text-color);
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.choice-card input,
+.rating-card input {
+    accent-color: var(--primary-color);
+}
+
+.choice-card span {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+}
+
+.rating-card span {
+    font-size: 22px;
+}
+
+.choice-card:has(input:checked),
+.rating-card:has(input:checked) {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.14);
+}
+
+.evaluation-comment {
+    margin: 0;
+    color: var(--text-color);
+    line-height: 1.7;
+}
+
 
 @media (max-width: 1180px) {
     .detail-summary {
@@ -920,6 +990,11 @@
     }
 
     .report-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .choice-grid,
+    .rating-grid {
         grid-template-columns: 1fr;
     }
 }

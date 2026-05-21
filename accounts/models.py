@@ -9,6 +9,7 @@ class Profile(models.Model):
     foto = models.ImageField(upload_to='usuarios/', null=True, blank=True)
 
     is_support = models.BooleanField(default=False)
+    ticket_auto_refresh_seconds = models.PositiveSmallIntegerField(default=30)
 
     def __str__(self):
         return self.user.username
