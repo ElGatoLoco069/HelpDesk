@@ -218,6 +218,8 @@ class TicketEditView(View):
 
        
     def get_context(self, request, ticket):
+        interactions = TicketInteraction.objects.filter(ticket=ticket)
+
         return {
             "active_page": "home",
             "ticket": ticket,
@@ -225,6 +227,7 @@ class TicketEditView(View):
             "priorities": Priority.objects.filter(status=True).order_by("id"),
             "technicians": self.get_support_users,
             "can_add_report": self.is_ticket_technician(request.user, ticket),
+            "interactions":interactions,
         }
 
 
@@ -232,7 +235,8 @@ class TicketEditView(View):
 
         try:
             ticket = self.get_ticket(ticket_id)
-            return render(request, "ticket_edit.html", self.get_context(request, ticket))
+
+            return render(request, "ticket_edit.html", self.get_context(request, ticket), )
 
         except Exception as e:
             print(e)
@@ -413,22 +417,27 @@ class TicketEditView(View):
 
 @method_decorator(login_required(login_url="/"), name="dispatch")
 class AddMessage(View):
-    
+
     def post(self, request):
-    
+
         form_ticket = request.POST.get("ticket")
-        message = request.POST.get("message")
-    
-        ticket = Ticket.objects.filter(hash=form_ticket).first()
-    
+        message = (request.POST.get("message") or "").strip()
+
+        ticket = get_object_or_404(Ticket, hash=form_ticket)
+
+        if not message:
+            messages.error(request, "Digite uma mensagem válida.")
+            return redirect("ticket_detail", ticket.id)
+
         if ticket.created_by == request.user:
             interaction_type = "requester"
+
         elif ticket.assigned_to == request.user:
             interaction_type = "technician"
+
         else:
             interaction_type = "system"
-    
-    
+
         TicketInteraction.objects.create(
             ticket=ticket,
             user=request.user,
@@ -437,17 +446,27 @@ class AddMessage(View):
         )
 
         messages.success(request, "Mensagem adicionada com sucesso!")
-        
-        if ticket.created_by == request.user:
-            SendNotification.success(request,
-            "Nova mensagem recebida",
-            f"O solicitante acaba de enviar uma nova mensagem sobre o chamado {ticket.hash}",
-            False, ticket.assigned_to)
+
+        if ticket.created_by == request.user and ticket.assigned_to:
+
+            SendNotification.success(
+                request,
+                "Nova mensagem recebida",
+                f"O solicitante acabou de enviar uma nova mensagem sobre o chamado {ticket.hash}",
+                False,
+                ticket.assigned_to
+            )
+
         elif ticket.assigned_to == request.user:
-            SendNotification.success(request,
-            "Nova mensagem recebida",
-            f"O Tecnico acaba de enviar uma nova mensagem sobre o chamado {ticket.hash}",
-            False, ticket.created_by)
-                            
+
+            SendNotification.success(
+                request,
+                "Nova mensagem recebida",
+                f"O técnico acabou de enviar uma nova mensagem sobre o chamado {ticket.hash}",
+                False,
+                ticket.created_by
+            )
+
         return redirect("ticket_detail", ticket.id)
+    
     
