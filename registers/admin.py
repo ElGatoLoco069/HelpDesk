@@ -15,8 +15,8 @@ class PriorityAdmin(admin.ModelAdmin):
 
 @admin.register(AssignmentMethod)
 class AssingmentMethodAdmin(admin.ModelAdmin): 
-    list_display = ('name', 'descript','created_at', 'updated_at')
-    search_fields = ('name',)
+    list_display = ('method_type', 'created_at', 'updated_at')
+    search_fields = ('method_type',)
 
 
 @admin.register(Category)

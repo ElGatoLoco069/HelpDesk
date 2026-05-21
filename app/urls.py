@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from accounts.views import AccountsView, logout_view
 from home.views import HomeView
-from ticket.views import TicketDetailView, TicketEditView, TicketView
+from ticket.views import TicketDetailView, TicketEditView, TicketView, AddMessage
 from registers.views import CategoryView, get_subcategories
 from notifications.views import mark_notifications_read
 
@@ -32,6 +32,7 @@ urlpatterns = [
     path("registers/new_ticket/", TicketView.as_view(), name="new_ticket"),
     path("tickets/<int:ticket_id>/", TicketDetailView.as_view(), name="ticket_detail"),
     path("tickets/<int:ticket_id>/edit/", TicketEditView.as_view(), name="ticket_edit"),
+    path("tickets/add_message/", AddMessage.as_view(), name="add_message"),
     path("registers/categories/", CategoryView.as_view(), name="categories"),
     path("subcategories/<int:category_id>/", get_subcategories, name="get_subcategories"),
     path("mark-read/", mark_notifications_read, name="mark_notifications_read"),

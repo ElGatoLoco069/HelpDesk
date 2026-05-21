@@ -14,7 +14,6 @@ class Ticket_Status(models.Model):
         return self.name
 
 
-
 class Ticket(models.Model):
 
     hash = models.CharField(max_length=150, unique=True)
@@ -73,3 +72,20 @@ class TicketReport(models.Model):
     def material_items(self):
         return [item.strip() for item in self.materials.splitlines() if item.strip()]
 
+
+class TicketInteraction(models.Model):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    message = models.TextField()
+
+    interaction_type = models.CharField(
+        max_length=20,
+        choices=[
+            ("requester", "Solicitante"),
+            ("technician", "Tecnico"),
+            ("system", "Sistema"),
+        ]
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)

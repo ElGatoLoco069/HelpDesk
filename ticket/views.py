@@ -6,7 +6,7 @@ from django.utils.decorators import method_decorator
 from django.contrib import messages
 
 from registers.models import Category, Priority, Subcategory
-from ticket.models import Ticket, TicketAttachment, TicketReport, Ticket_Status
+from ticket.models import Ticket, TicketAttachment, TicketReport, Ticket_Status, TicketInteraction
 from accounts.models import Profile
 
 import random
@@ -168,12 +168,15 @@ class TicketDetailView(View):
                 id=ticket_id,
             )
 
+            interactions = TicketInteraction.objects.filter(ticket=ticket)
+
             return render(
                 request,
                 "ticket_detail.html",
                 {
                     "active_page": "home",
                     "ticket": ticket,
+                    "interactions":interactions,
                 },
             )
 
@@ -408,3 +411,43 @@ class TicketEditView(View):
         return redirect("ticket_detail", ticket_id=ticket.id)
 
 
+@method_decorator(login_required(login_url="/"), name="dispatch")
+class AddMessage(View):
+    
+    def post(self, request):
+    
+        form_ticket = request.POST.get("ticket")
+        message = request.POST.get("message")
+    
+        ticket = Ticket.objects.filter(hash=form_ticket).first()
+    
+        if ticket.created_by == request.user:
+            interaction_type = "requester"
+        elif ticket.assigned_to == request.user:
+            interaction_type = "technician"
+        else:
+            interaction_type = "system"
+    
+    
+        TicketInteraction.objects.create(
+            ticket=ticket,
+            user=request.user,
+            message=message,
+            interaction_type=interaction_type
+        )
+
+        messages.success(request, "Mensagem adicionada com sucesso!")
+        
+        if ticket.created_by == request.user:
+            SendNotification.success(request,
+            "Nova mensagem recebida",
+            f"O solicitante acaba de enviar uma nova mensagem sobre o chamado {ticket.hash}",
+            False, ticket.assigned_to)
+        elif ticket.assigned_to == request.user:
+            SendNotification.success(request,
+            "Nova mensagem recebida",
+            f"O Tecnico acaba de enviar uma nova mensagem sobre o chamado {ticket.hash}",
+            False, ticket.created_by)
+                            
+        return redirect("ticket_detail", ticket.id)
+    

@@ -9,255 +9,598 @@
 </head>
 
 <body>
-    <section class="ticket-detail-header">
+
+<section class="ticket-detail-header">
+
+    <div>
+        <span class="eyebrow">Chamado</span>
+        <h1>{{ ticket.hash }}</h1>
+        <p>{{ ticket.title }}</p>
+    </div>
+
+    <div class="ticket-detail-actions">
+
+        <a href="{% url 'home' %}" class="btn-ghost" title="Voltar para o dashboard">
+            <i class="fas fa-arrow-left"></i>
+            Voltar
+        </a>
+
+        {% if request.user.profile.is_support %}
+        <a href="{% url 'ticket_edit' ticket.id %}" class="btn-primary" title="Editar {{ ticket.hash }}">
+            <i class="fas fa-pen"></i>
+            Editar
+        </a>
+        {% endif %}
+
+    </div>
+
+</section>
+
+<!-- RESUMO -->
+<section class="detail-summary">
+
+    <article class="summary-card open">
+        <div class="summary-icon">
+            <i class="fas fa-circle-info"></i>
+        </div>
+
         <div>
-            <span class="eyebrow">Chamado</span>
-            <h1>{{ ticket.hash }}</h1>
-            <p>{{ ticket.title }}</p>
+            <span class="summary-label">Status</span>
+
+            <span class="badge-status {{ ticket.status.color }}">
+                {{ ticket.status }}
+            </span>
+        </div>
+    </article>
+
+    <article class="summary-card danger">
+        <div class="summary-icon">
+            <i class="fas fa-triangle-exclamation"></i>
         </div>
 
-        <div class="ticket-detail-actions">
-            <a href="{% url 'home' %}" class="btn-ghost" title="Voltar para o dashboard">
-                <i class="fas fa-arrow-left"></i>
-                Voltar
-            </a>
-            {% if request.user.profile.is_support %}
-                <a href="{% url 'ticket_edit' ticket.id %}" class="btn-primary" title="Editar {{ ticket.hash }}">
-                    <i class="fas fa-pen"></i>
-                    Editar
-                </a>
-            {% endif %}
+        <div>
+            <span class="summary-label">Prioridade</span>
+
+            <span class="badge-status {{ ticket.priority.color }}">
+                {{ ticket.priority }}
+            </span>
         </div>
-    </section>
+    </article>
 
-    <section class="detail-summary">
-        <article class="summary-card open">
-            <div class="summary-icon">
-                <i class="fas fa-circle-info"></i>
+    <article class="summary-card progress">
+        <div class="summary-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+
+        <div>
+            <span class="summary-label">Aberto em</span>
+
+            <strong class="summary-value">
+                {{ ticket.created_at|date:"d/m/Y" }}
+            </strong>
+
+            <span class="info">
+                {{ ticket.created_at|date:"H:i" }}
+            </span>
+        </div>
+    </article>
+
+    <article class="summary-card warning">
+        <div class="summary-icon">
+            <i class="fas fa-rotate"></i>
+        </div>
+
+        <div>
+            <span class="summary-label">Atualizacao</span>
+
+            <strong class="summary-value">
+                {{ ticket.updated_at|naturaltime }}
+            </strong>
+
+            <span class="info">
+                {{ ticket.updated_at|date:"d/m/Y H:i" }}
+            </span>
+        </div>
+    </article>
+
+</section>
+
+<!-- RESPONSAVEL -->
+<section class="detail-layout technician-row">
+
+    <article class="detail-card">
+
+        <div class="detail-card-header compact">
+            <h2>Tecnico responsavel</h2>
+            <i class="fas fa-user-gear"></i>
+        </div>
+
+        {% if ticket.assigned_to %}
+        <div class="person-card">
+
+            <div class="avatar">
+                {{ ticket.assigned_to.first_name|slice:":1" }}{{ ticket.assigned_to.last_name|slice:":1" }}
             </div>
+
             <div>
-                <span class="summary-label">Status</span>
-                <span class="badge-status {{ ticket.status.color }}">{{ ticket.status }}</span>
-            </div>
-        </article>
 
-        <article class="summary-card danger">
-            <div class="summary-icon">
-                <i class="fas fa-triangle-exclamation"></i>
+                <strong>
+                    {{ ticket.assigned_to.first_name|default:ticket.assigned_to.username }}
+                    {{ ticket.assigned_to.last_name }}
+                </strong>
+
+                <span>
+                    {{ ticket.assigned_to.profile.telefone|default:"Telefone nao informado" }}
+                </span>
+
             </div>
+
+        </div>
+
+        {% else %}
+        <div class="empty-attachments">
+
+            <i class="fas fa-user-plus"></i>
+
+            <span>
+                Nenhum tecnico atribuido.
+            </span>
+
+        </div>
+        {% endif %}
+
+    </article>
+
+</section>
+
+<!-- CONTEUDO -->
+<section class="detail-layout">
+
+    <!-- TIMELINE -->
+    <article class="detail-card main-detail">
+
+        <div class="detail-card-header">
+
             <div>
-                <span class="summary-label">Prioridade</span>
-                <span class="badge-status {{ ticket.priority.color }}">{{ ticket.priority }}</span>
-            </div>
-        </article>
+                <h2>Conversa do chamado</h2>
 
-        <article class="summary-card progress">
-            <div class="summary-icon">
-                <i class="fas fa-clock"></i>
+                <p>
+                    Historico completo de interacoes e atualizacoes do atendimento.
+                </p>
             </div>
-            <div>
-                <span class="summary-label">Aberto em</span>
-                <strong class="summary-value">{{ ticket.created_at|date:"d/m/Y" }}</strong>
-                <span class="info">{{ ticket.created_at|date:"H:i" }}</span>
-            </div>
-        </article>
 
-        <article class="summary-card warning">
-            <div class="summary-icon">
-                <i class="fas fa-rotate"></i>
-            </div>
-            <div>
-                <span class="summary-label">Atualizacao</span>
-                <strong class="summary-value">{{ ticket.updated_at|naturaltime }}</strong>
-                <span class="info">{{ ticket.updated_at|date:"d/m/Y H:i" }}</span>
-            </div>
-        </article>
-    </section>
+            <span class="focus-badge">
+                {{ interactions.count|add:"1" }} mensagens
+            </span>
 
-    <section class="detail-layout technician-row">
+        </div>
+
+        <div class="interaction-list">
+
+            <!-- MENSAGEM ORIGINAL -->
+            <article class="interaction-item original-ticket-message">
+
+                <div class="interaction-avatar requester">
+                    {{ ticket.created_by.first_name|slice:":1" }}{{ ticket.created_by.last_name|slice:":1" }}
+                </div>
+
+                <div class="interaction-content original-message">
+
+                    <div class="interaction-header">
+
+                        <strong>
+                            {{ ticket.created_by.first_name }}
+                            {{ ticket.created_by.last_name }}
+                        </strong>
+
+                        <span class="interaction-role requester">
+                            Solicitante
+                        </span>
+
+                        <span class="interaction-badge">
+                            Mensagem original
+                        </span>
+
+                        <span class="interaction-time">
+                            {{ ticket.created_at|date:"d/m/Y H:i" }}
+                        </span>
+
+                    </div>
+
+                    <div class="interaction-message">
+                        {{ ticket.description|linebreaksbr }}
+                    </div>
+
+                </div>
+
+            </article>
+
+            <!-- INTERACOES -->
+            {% for interaction in interactions %}
+
+            <article class="interaction-item">
+
+                <div class="interaction-avatar {% if interaction.user.profile.is_support %}technician{% else %}requester{% endif %}">
+                    {{ interaction.user.first_name|slice:":1" }}{{ interaction.user.last_name|slice:":1" }}
+                </div>
+
+                <div class="interaction-content">
+
+                    <div class="interaction-header">
+
+                        <strong>
+                            {{ interaction.user.first_name }}
+                            {{ interaction.user.last_name }}
+                        </strong>
+
+                        {% if interaction.user.profile.is_support %}
+                        <span class="interaction-role technician">
+                            Tecnico
+                        </span>
+                        {% else %}
+                        <span class="interaction-role requester">
+                            Solicitante
+                        </span>
+                        {% endif %}
+
+                        <span class="interaction-time">
+                            {{ interaction.created_at|date:"d/m/Y H:i" }}
+                        </span>
+
+                    </div>
+
+                    <div class="interaction-message">
+                        {{ interaction.message|linebreaksbr }}
+                    </div>
+
+                    {% if interaction.attachment %}
+                    <div class="interaction-attachments">
+
+                        <a href="{{ interaction.attachment.url }}" target="_blank" rel="noopener" class="attachment-item">
+                            <i class="fas fa-paperclip"></i>
+
+                            <span>
+                                {{ interaction.attachment.name }}
+                            </span>
+                        </a>
+
+                    </div>
+                    {% endif %}
+
+                </div>
+
+            </article>
+
+            {% empty %}
+
+            <div class="empty-interaction">
+
+                <i class="fas fa-comments"></i>
+
+                <strong>
+                    Nenhuma atualizacao adicional
+                </strong>
+
+                <span>
+                    O chamado ainda nao recebeu novas interacoes.
+                </span>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <!-- FORM -->
+        <form class="interaction-form" action="{% url 'add_message' %}" method="post" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <input type="hidden" name="ticket" value="{{ticket.hash}}">
+
+            <label class="edit-field full">
+
+                <span>
+                    Adicionar nova informacao
+                </span>
+
+                <textarea
+                    name="message"
+                    rows="5"
+                    minlength="5"
+                    maxlength="1000"
+                    placeholder="Ex.: O patrimonio correto do computador e TI-2048."
+                    required
+                ></textarea>
+
+            </label>
+
+            <div class="interaction-actions">
+
+                <label class="attachment-button">
+
+                    <input type="file" name="attachment" hidden>
+
+                    <i class="fas fa-paperclip"></i>
+
+                    Anexar arquivo
+
+                </label>
+
+                <button class="btn-primary" type="submit">
+
+                    <i class="fas fa-paper-plane"></i>
+
+                    Adicionar informacao
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </article>
+
+    <!-- SIDEBAR -->
+    <aside class="detail-stack">
+
+        <!-- SOLICITANTE -->
         <article class="detail-card">
+
             <div class="detail-card-header compact">
-                <h2>Tecnico responsavel</h2>
-                <i class="fas fa-user-gear"></i>
+                <h2>Solicitante</h2>
+                <i class="fas fa-user"></i>
             </div>
 
-            {% if ticket.assigned_to %}
             <div class="person-card">
+
                 <div class="avatar">
-                    {{ ticket.assigned_to.first_name|slice:":1" }}{{ ticket.assigned_to.last_name|slice:":1" }}
+                    {{ ticket.created_by.first_name|slice:":1" }}{{ ticket.created_by.last_name|slice:":1" }}
                 </div>
-                <div>
-                    <strong>{{ ticket.assigned_to.first_name|default:ticket.assigned_to.username }} {{ ticket.assigned_to.last_name }}</strong>
-                    <span>{{ ticket.assigned_to.profile.telefone|default:"E-mail nao informado" }}</span>
-                </div>
-            </div>
-            {% else %}
-            <div class="empty-attachments">
-                <i class="fas fa-user-plus"></i>
-                <span>Nenhum tecnico atribuido.</span>
-            </div>
-            {% endif %}
-        </article>
-    </section>
 
-    <section class="detail-layout">
-        <article class="detail-card main-detail">
-            <div class="detail-card-header">
                 <div>
-                    <h2>Descricao do chamado</h2>
-                    <p>Informacoes registradas pelo solicitante.</p>
+
+                    <strong>
+                        {{ ticket.created_by.first_name }}
+                        {{ ticket.created_by.last_name }}
+                    </strong>
+
+                    <span>
+                        {{ ticket.created_by.profile.telefone|default:"Telefone nao informado" }}
+                    </span>
+
                 </div>
-                <span class="focus-badge">{{ ticket.title.category }}</span>
+
             </div>
 
-            <div class="description-box">
-                {{ ticket.description|linebreaksbr }}
-            </div>
         </article>
 
-        <aside class="detail-stack">
-            <article class="detail-card">
-                <div class="detail-card-header compact">
-                    <h2>Solicitante</h2>
-                    <i class="fas fa-user"></i>
-                </div>
-
-                <div class="person-card">
-                    <div class="avatar">
-                        {{ ticket.created_by.first_name|slice:":1" }}{{ ticket.created_by.last_name|slice:":1" }}
-                    </div>
-                    <div>
-                        <strong>{{ ticket.created_by.first_name }} {{ ticket.created_by.last_name }}</strong>
-                        <span>{{ ticket.created_by.profile.telefone|default:"E-mail nao informado" }}</span>
-                    </div>
-                </div>
-            </article>
-
-            <article class="detail-card">
-                <div class="detail-card-header compact">
-                    <h2>Classificacao</h2>
-                    <i class="fas fa-tags"></i>
-                </div>
-
-                <div class="info-list">
-                    <div>
-                        <span>Categoria</span>
-                        <strong>{{ ticket.title.category }}</strong>
-                    </div>
-                    <div>
-                        <span>Subcategoria</span>
-                        <strong>{{ ticket.title }}</strong>
-                    </div>
-                    <div>
-                        <span>Metodo</span>
-                        <strong>{{ ticket.title.assignment_method }}</strong>
-                    </div>
-                </div>
-            </article>
-        </aside>
-    </section>
-
-    <section class="detail-layout bottom">
+        <!-- CLASSIFICACAO -->
         <article class="detail-card">
+
+            <div class="detail-card-header compact">
+                <h2>Classificacao</h2>
+                <i class="fas fa-tags"></i>
+            </div>
+
+            <div class="info-list">
+
+                <div>
+                    <span>Categoria</span>
+                    <strong>{{ ticket.title.category }}</strong>
+                </div>
+
+                <div>
+                    <span>Subcategoria</span>
+                    <strong>{{ ticket.title }}</strong>
+                </div>
+
+                <div>
+                    <span>Metodo</span>
+                    <strong>{{ ticket.title.assignment_method }}</strong>
+                </div>
+
+            </div>
+
+        </article>
+
+        <!-- SLA -->
+        <article class="detail-card">
+
             <div class="detail-card-header compact">
                 <h2>Prazos da prioridade</h2>
                 <i class="fas fa-hourglass-half"></i>
             </div>
 
             <div class="metric-grid">
+
                 <div class="metric-item">
-                    <span>Primeira interacao</span>
-                    <strong>{{ ticket.priority.first_interaction_limit }}m</strong>
+
+                    <span>
+                        Primeira interacao
+                    </span>
+
+                    <strong>
+                        {{ ticket.priority.first_interaction_limit }}m
+                    </strong>
+
                 </div>
+
                 <div class="metric-item">
-                    <span>Tempo estimado</span>
-                    <strong>{{ ticket.priority.estimated_service_time }}m</strong>
+
+                    <span>
+                        Tempo estimado
+                    </span>
+
+                    <strong>
+                        {{ ticket.priority.estimated_service_time }}m
+                    </strong>
+
                 </div>
+
             </div>
+
         </article>
 
+        <!-- ANEXOS -->
         <article class="detail-card">
+
             <div class="detail-card-header compact">
                 <h2>Anexos</h2>
                 <i class="fas fa-paperclip"></i>
             </div>
 
             <div class="attachment-list">
+
                 {% if ticket.attachments.all %}
+
                     {% for attachment in ticket.attachments.all %}
-                    <a class="attachment-item" href="{{ attachment.file.url }}" target="_blank" rel="noopener" title="Abrir {{ attachment.original_name }}">
+
+                    <a class="attachment-item" href="{{ attachment.file.url }}" target="_blank" rel="noopener">
+
                         <i class="fas fa-file"></i>
-                        <span>{{ attachment.original_name }}</span>
-                        <small>{{ attachment.size|filesizeformat }}</small>
+
+                        <span>
+                            {{ attachment.original_name }}
+                        </span>
+
+                        <small>
+                            {{ attachment.size|filesizeformat }}
+                        </small>
+
                     </a>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-attachments">
-                        <i class="fas fa-paperclip"></i>
-                        <span>Nenhum anexo enviado neste chamado.</span>
-                    </div>
-                {% endif %}
-            </div>
-        </article>
-    </section>
 
-    <section class="detail-layout technician-row">
-        <article class="detail-card">
-            <div class="detail-card-header">
-                <div>
-                    <h2>Relatorios tecnicos</h2>
-                    <p>Acoes realizadas e materiais utilizados no atendimento.</p>
+                    {% endfor %}
+
+                {% else %}
+
+                <div class="empty-attachments">
+
+                    <i class="fas fa-paperclip"></i>
+
+                    <span>
+                        Nenhum anexo enviado neste chamado.
+                    </span>
+
                 </div>
-                <span class="focus-badge">{{ ticket.reports.all|length }} registros</span>
-            </div>
 
-            <div class="report-list">
-                {% if ticket.reports.all %}
-                    {% for report in ticket.reports.all %}
-                    <article class="report-item">
-                        <div class="report-header">
-                            <div>
-                                <strong>{{ report.technician.first_name|default:report.technician.username }} {{ report.technician.last_name }}</strong>
-                                <span>{{ report.created_at|date:"d/m/Y H:i" }}</span>
-                            </div>
-                        </div>
-
-                        <p>{{ report.summary|linebreaksbr }}</p>
-
-                        <div class="report-columns">
-                            <div>
-                                <span class="report-label">Acoes realizadas</span>
-                                <ul class="report-list-items">
-                                    {% for item in report.action_items %}
-                                    <li>{{ item }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-
-                            <div>
-                                <span class="report-label">Materiais utilizados</span>
-                                {% if report.material_items %}
-                                <ul class="report-list-items">
-                                    {% for item in report.material_items %}
-                                    <li>{{ item }}</li>
-                                    {% endfor %}
-                                </ul>
-                                {% else %}
-                                <div class="empty-inline">Nenhum material registrado.</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </article>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-attachments">
-                        <i class="fas fa-clipboard-list"></i>
-                        <span>Nenhum relatorio tecnico registrado.</span>
-                    </div>
                 {% endif %}
-            </div>
-        </article>
-    </section>
-</body>
 
+            </div>
+
+        </article>
+
+    </aside>
+
+</section>
+
+<!-- RELATORIOS -->
+<section class="detail-layout technician-row">
+
+    <article class="detail-card">
+
+        <div class="detail-card-header">
+
+            <div>
+
+                <h2>
+                    Relatorios tecnicos
+                </h2>
+
+                <p>
+                    Acoes realizadas e materiais utilizados no atendimento.
+                </p>
+
+            </div>
+
+            <span class="focus-badge">
+                {{ ticket.reports.all|length }} registros
+            </span>
+
+        </div>
+
+        <div class="report-list">
+
+            {% if ticket.reports.all %}
+
+                {% for report in ticket.reports.all %}
+
+                <article class="report-item">
+
+                    <div class="report-header">
+                        <div>
+                            <strong>
+                                {{ report.technician.first_name|default:report.technician.username }}
+                                {{ report.technician.last_name }}
+                            </strong>
+
+                            <span>
+                                {{ report.created_at|date:"d/m/Y H:i" }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <p>
+                        {{ report.summary|linebreaksbr }}
+                    </p>
+
+                    <div class="report-columns">
+
+                        <div>
+                            <span class="report-label">
+                                Acoes realizadas
+                            </span>
+
+                            <ul class="report-list-items">
+
+                                {% for item in report.action_items %}
+                                <li>{{ item }}</li>
+                                {% endfor %}
+
+                            </ul>
+                        </div>
+
+                        <div>
+                            <span class="report-label">
+                                Materiais utilizados
+                            </span>
+
+                            {% if report.material_items %}
+
+                            <ul class="report-list-items">
+
+                                {% for item in report.material_items %}
+                                <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+
+                            {% else %}
+                            <div class="empty-inline">
+                                Nenhum material registrado.
+                            </div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                </article>
+
+                {% endfor %}
+
+            {% else %}
+
+            <div class="empty-attachments">
+
+                <i class="fas fa-clipboard-list"></i>
+
+                <span>
+                    Nenhum relatorio tecnico registrado.
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </article>
+</section>
+
+</body>
 {% endblock %}

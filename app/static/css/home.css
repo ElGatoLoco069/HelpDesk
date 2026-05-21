@@ -525,6 +525,7 @@ select:focus {
     color: var(--text-color);
 }
 
+
 @media (max-width: 1180px) {
     .summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));

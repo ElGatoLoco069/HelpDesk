@@ -318,3 +318,4 @@ class HomeView(View):
                 },
             }
         )
+        
