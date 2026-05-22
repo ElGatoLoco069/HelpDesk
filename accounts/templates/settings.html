@@ -62,7 +62,7 @@
 
                     <label class="settings-field">
                         <span>Telefone/Ramal</span>
-                        <input type="text" name="telefone" value="{{ request.user.profile.telefone }}" maxlength="20" placeholder="Ex.: 3525 ou (45) 0000-0000">
+                        <input type="text" name="telefone" value="{{ request.user.profile.telefone }}" maxlength="20" placeholder="Ex.: 525 ou (45) 0000-0000" id="phone">
                     </label>
 
                     <label class="settings-field">
@@ -123,5 +123,69 @@
         </article>
         {% endif %}
     </section>
+
+
+<script>
+    const phoneInput = document.getElementById('phone');
+
+    function formatPhone(value) {
+
+        // Remove tudo que não for número
+        value = value.replace(/\D/g, '');
+
+        // =========================
+        // RAMAL (até 3 dígitos)
+        // =========================
+        if (value.length <= 3) {
+            return value;
+        }
+
+        // =========================
+        // TELEFONE
+        // =========================
+
+        // Remove 55 caso usuário digite manualmente
+        if (value.startsWith('55')) {
+            value = value.substring(2);
+        }
+
+        // Limite:
+        // DDD (2) + 9 dígitos = 11
+        value = value.substring(0, 11);
+
+        let formatted = '+55 ';
+
+        // DDD
+        if (value.length >= 1) {
+            formatted += '(' + value.substring(0, 2);
+        }
+
+        if (value.length >= 3) {
+            formatted += ') ';
+        }
+
+        // Número
+        if (value.length >= 3) {
+
+            // Celular com 9 dígitos
+            if (value.length >= 7) {
+                formatted += value.substring(2, 7);
+            } else {
+                formatted += value.substring(2);
+            }
+
+            // Final
+            if (value.length >= 8) {
+                formatted += '-' + value.substring(7, 11);
+            }
+        }
+
+        return formatted;
+    }
+
+    phoneInput.addEventListener('input', function(e) {
+        e.target.value = formatPhone(e.target.value);
+    });
+</script>
 </body>
 {% endblock %}

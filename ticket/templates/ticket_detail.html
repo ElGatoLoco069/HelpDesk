@@ -25,13 +25,14 @@
             Voltar
         </a>
 
-        {% if request.user.profile.is_support %}
-        <a href="{% url 'ticket_edit' ticket.id %}" class="btn-primary" title="Editar {{ ticket.hash }}">
-            <i class="fas fa-pen"></i>
-            Editar
-        </a>
+        {% if ticket.status.id != 5 %}
+            {% if request.user.profile.is_support %}
+            <a href="{% url 'ticket_edit' ticket.id %}" class="btn-primary" title="Editar {{ ticket.hash }}">
+                <i class="fas fa-pen"></i>
+                Editar
+            </a>
+            {% endif %}
         {% endif %}
-
     </div>
 
 </section>
@@ -130,7 +131,7 @@
                 </strong>
 
                 <span>
-                    {{ ticket.assigned_to.profile.telefone|default:"Telefone nao informado" }}
+                    <i class="fas fa-phone"></i> {{ ticket.assigned_to.profile.telefone|default:"Telefone nao informado" }}
                 </span>
 
             </div>
@@ -175,7 +176,7 @@
 
         </div>
 
-        <div class="interaction-list">
+        <div class="interaction-list" id="interactionList">
 
             <!-- MENSAGEM ORIGINAL -->
             <article class="interaction-item original-ticket-message">
@@ -366,7 +367,7 @@
                     </strong>
 
                     <span>
-                        {{ ticket.created_by.profile.telefone|default:"Telefone nao informado" }}
+                        <i class="fas fa-phone"></i> {{ ticket.created_by.profile.telefone|default:"Telefone nao informado" }}
                     </span>
 
                 </div>
@@ -601,6 +602,105 @@
         </div>
     </article>
 </section>
+<script>
 
+function setupInteractionShowMore() {
+
+    const interactionList = document.getElementById("interactionList");
+
+    if (!interactionList) return;
+
+    const visibleLimit = 4;
+
+    // Pega somente interações adicionais
+    const items = Array.from(
+        interactionList.querySelectorAll(".interaction-item")
+    );
+
+    // Remove botão antigo
+    const oldButton = interactionList.querySelector(".interaction-more-btn");
+
+    oldButton?.remove();
+
+    // Não cria botão se tiver poucas interações
+    if (items.length <= visibleLimit) {
+
+        items.forEach(item => {
+            item.classList.remove("is-hidden");
+        });
+
+        return;
+    }
+
+    // Estado inicial
+    items.forEach((item, index) => {
+
+        item.classList.toggle(
+            "is-hidden",
+            index >= visibleLimit
+        );
+
+    });
+
+    // Botão
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "interaction-more-btn";
+
+    button.textContent =
+        `Ver mais ${items.length - visibleLimit} interações`;
+
+    button.dataset.expanded = "false";
+
+    // Toggle
+    button.addEventListener("click", () => {
+
+        const expanded =
+            button.dataset.expanded === "true";
+
+        items.forEach((item, index) => {
+
+            if (index < visibleLimit) return;
+
+            item.classList.toggle(
+                "is-hidden",
+                expanded
+            );
+
+        });
+
+        button.dataset.expanded =
+            expanded ? "false" : "true";
+
+        button.textContent = expanded
+            ? `Ver mais ${items.length - visibleLimit} interações`
+            : "Mostrar menos";
+
+    });
+
+    interactionList.appendChild(button);
+
+}
+
+// Inicializa
+document.addEventListener(
+    "DOMContentLoaded",
+    setupInteractionShowMore
+);
+
+items.forEach((item, index) => {
+
+    if (index < visibleLimit) return;
+
+    item.style.transitionDelay = `${index * 40}ms`;
+
+    item.classList.toggle(
+        "is-hidden",
+        expanded
+    );
+
+});
+</script>
 </body>
 {% endblock %}

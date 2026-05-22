@@ -158,61 +158,68 @@
 
     </section>
 
-    <script>
-        const phoneInput = document.getElementById('phone');
+<script>
+    const phoneInput = document.getElementById('phone');
 
-        // Mantém +55 como padrão ao clicar
-        phoneInput.addEventListener('focus', function () {
-            if (this.value.trim() === '') {
-                this.value = '+55 ';
+    function formatPhone(value) {
+
+        // Remove tudo que não for número
+        value = value.replace(/\D/g, '');
+
+        // =========================
+        // RAMAL (até 3 dígitos)
+        // =========================
+        if (value.length <= 3) {
+            return value;
+        }
+
+        // =========================
+        // TELEFONE
+        // =========================
+
+        // Remove 55 caso usuário digite manualmente
+        if (value.startsWith('55')) {
+            value = value.substring(2);
+        }
+
+        // Limite:
+        // DDD (2) + 9 dígitos = 11
+        value = value.substring(0, 11);
+
+        let formatted = '+55 ';
+
+        // DDD
+        if (value.length >= 1) {
+            formatted += '(' + value.substring(0, 2);
+        }
+
+        if (value.length >= 3) {
+            formatted += ') ';
+        }
+
+        // Número
+        if (value.length >= 3) {
+
+            // Celular com 9 dígitos
+            if (value.length >= 7) {
+                formatted += value.substring(2, 7);
+            } else {
+                formatted += value.substring(2);
             }
-        });
 
-        // Formatação automática
-        phoneInput.addEventListener('input', function (e) {
-
-            // Remove tudo que não for número
-            let value = e.target.value.replace(/\D/g, '');
-
-            // Garante que sempre começa com 55
-            if (!value.startsWith('55')) {
-                value = '55' + value;
+            // Final
+            if (value.length >= 8) {
+                formatted += '-' + value.substring(7, 11);
             }
+        }
 
-            // Limite total
-            value = value.substring(0, 13);
+        return formatted;
+    }
 
-            let formatted = '+55';
-
-            if (value.length >= 3) {
-                formatted += ' (' + value.substring(2, 4);
-            }
-
-            if (value.length >= 5) {
-                formatted += ') ' + value.substring(4, 5);
-            }
-
-            if (value.length >= 6) {
-                formatted += ' ' + value.substring(5, 9);
-            }
-
-            if (value.length >= 10) {
-                formatted += '-' + value.substring(9, 13);
-            }
-
-            e.target.value = formatted;
-        });
-
-        // Impede apagar o +55
-        phoneInput.addEventListener('keydown', function (e) {
-            if (
-                this.selectionStart <= 4 &&
-                (e.key === 'Backspace' || e.key === 'Delete')
-            ) {
-                e.preventDefault();
-            }
-        });
-    </script>
+    phoneInput.addEventListener('input', function(e) {
+        e.target.value = formatPhone(e.target.value);
+    });
+</script>
 
 </body>
 

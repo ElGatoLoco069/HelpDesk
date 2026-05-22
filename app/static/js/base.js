@@ -469,13 +469,16 @@ if (notificationBody) {
 // ================================
 // VER MAIS NOTIFICAÇÕES
 // ================================
-
 function setupNotificationShowMore() {
 
     if (!notificationBody) return;
 
     const visibleLimit = 4;
-    const items = Array.from(notificationBody.querySelectorAll(".notification-item"));
+
+    const items = Array.from(
+        notificationBody.querySelectorAll(".notification-item")
+    );
+
     const oldButton = notificationBody.querySelector(".notification-more-btn");
 
     oldButton?.remove();
@@ -485,25 +488,38 @@ function setupNotificationShowMore() {
         return;
     }
 
+    // Estado inicial
     items.forEach((item, index) => {
         item.classList.toggle("is-hidden", index >= visibleLimit);
     });
 
     const button = document.createElement("button");
+
     button.type = "button";
     button.className = "notification-more-btn";
     button.textContent = `Ver mais ${items.length - visibleLimit}`;
     button.dataset.expanded = "false";
 
     button.addEventListener("click", () => {
+
         const expanded = button.dataset.expanded === "true";
 
+        // Se estiver expandido -> esconder
+        // Se estiver recolhido -> mostrar
         items.forEach((item, index) => {
-            item.classList.toggle("is-hidden", !expanded && index >= visibleLimit);
+
+            if (index < visibleLimit) return;
+
+            item.classList.toggle("is-hidden", expanded);
+
         });
 
         button.dataset.expanded = expanded ? "false" : "true";
-        button.textContent = expanded ? `Ver mais ${items.length - visibleLimit}` : "Mostrar menos";
+
+        button.textContent = expanded
+            ? `Ver mais ${items.length - visibleLimit}`
+            : "Mostrar menos";
+
     });
 
     notificationBody.appendChild(button);

@@ -304,8 +304,15 @@ class TicketEditView(View):
                 return self.evaluate_service(request, ticket)
 
             if not request.user.profile.is_support:
-                messages.warning(request, "Apenas usuarios de suporte podem editar o chamado.")
-                return redirect("ticket_detail", ticket_id=ticket.id)
+                messages.warning(
+                    request,
+                    "Apenas usuarios de suporte podem editar o chamado."
+                )
+
+                return redirect(
+                    "ticket_detail",
+                    ticket_id=ticket.id
+                )
 
             status_id = request.POST.get("status")
             priority_id = request.POST.get("priority")
@@ -317,19 +324,30 @@ class TicketEditView(View):
                 assigned_to_id = int(assigned_to_id) if assigned_to_id else None
 
             except (TypeError, ValueError):
-                messages.warning(request, "Dados inválidos enviados.")
+
+                messages.warning(
+                    request,
+                    "Dados inválidos enviados."
+                )
+
                 return render(
                     request,
                     "ticket_edit.html",
                     self.get_context(request, ticket)
                 )
 
+            # =========================
+            # VALIDA STATUS
+            # =========================
             if not Ticket_Status.objects.filter(
                 id=status_id,
                 status=True
             ).exists():
 
-                messages.warning(request, "Selecione um status válido.")
+                messages.warning(
+                    request,
+                    "Selecione um status válido."
+                )
 
                 return render(
                     request,
@@ -337,12 +355,18 @@ class TicketEditView(View):
                     self.get_context(request, ticket)
                 )
 
+            # =========================
+            # VALIDA PRIORIDADE
+            # =========================
             if not Priority.objects.filter(
                 id=priority_id,
                 status=True
             ).exists():
 
-                messages.warning(request, "Selecione uma prioridade válida.")
+                messages.warning(
+                    request,
+                    "Selecione uma prioridade válida."
+                )
 
                 return render(
                     request,
@@ -350,12 +374,18 @@ class TicketEditView(View):
                     self.get_context(request, ticket)
                 )
 
+            # =========================
+            # VALIDA TÉCNICO
+            # =========================
             if assigned_to_id and not User.objects.filter(
                 id=assigned_to_id,
                 is_active=True
             ).exists():
 
-                messages.warning(request, "Selecione um técnico válido.")
+                messages.warning(
+                    request,
+                    "Selecione um técnico válido."
+                )
 
                 return render(
                     request,
@@ -363,9 +393,15 @@ class TicketEditView(View):
                     self.get_context(request, ticket)
                 )
 
+            # =========================
+            # ALTERAÇÃO DE TÉCNICO
+            # =========================
             if assigned_to_id != ticket.assigned_to_id:
 
-                assigned_user = User.objects.get(id=assigned_to_id) if assigned_to_id else None
+                assigned_user = (
+                    User.objects.get(id=assigned_to_id)
+                    if assigned_to_id else None
+                )
 
                 SendNotification.success(
                     request,
@@ -375,20 +411,43 @@ class TicketEditView(View):
                     False,
                     ticket.created_by
                 )
-                
+
+                # força status para EM ATENDIMENTO
+                status_id = 2
+
             selected_status = Ticket_Status.objects.get(id=status_id)
-            selected_status_name = normalize_status_name(selected_status.name)
-            done_status = get_done_status()
-            solution_status = get_solution_status()
-            is_closing_status = (
-                selected_status_name in [STATUS_CONCLUIDO, STATUS_PROPOSTA] or
-                (done_status and status_id == done_status.id) or
-                status_id == solution_status.id
+
+            selected_status_name = normalize_status_name(
+                selected_status.name
             )
 
-            if not TicketReport.objects.filter(ticket=ticket).exists() and is_closing_status:
-                
-                messages.warning(request, "Para propor a solucao do chamado e necessario adicionar o relatorio tecnico!.")
+            done_status = get_done_status()
+            solution_status = get_solution_status()
+
+            is_closing_status = (
+                selected_status_name in [
+                    STATUS_CONCLUIDO,
+                    STATUS_PROPOSTA
+                ]
+                or (
+                    done_status and
+                    status_id == done_status.id
+                )
+                or status_id == solution_status.id
+            )
+
+            # =========================
+            # VALIDA RELATÓRIO TÉCNICO
+            # =========================
+            if (
+                not TicketReport.objects.filter(ticket=ticket).exists()
+                and is_closing_status
+            ):
+
+                messages.warning(
+                    request,
+                    "Para propor a solução do chamado é necessário adicionar o relatório técnico!"
+                )
 
                 return render(
                     request,
@@ -396,30 +455,56 @@ class TicketEditView(View):
                     self.get_context(request, ticket)
                 )
 
+            # =========================
+            # CONCLUÍDO -> PROPOSTA
+            # =========================
             if done_status and status_id == done_status.id:
+
                 status_id = solution_status.id
                 selected_status = solution_status
-                messages.success(request, "O chamado foi movido para proposta de solucao para validacao do solicitante.")
 
+                messages.success(
+                    request,
+                    "O chamado foi movido para proposta de solução para validação do solicitante."
+                )
+
+            # =========================
+            # NOTIFICA ALTERAÇÃO STATUS
+            # =========================
             if status_id != ticket.status.id:
-                SendNotification.success(request,
-                "Status do chamado Atualizado",
-                f"O chamado {ticket.hash} esta {selected_status}",
-                False, ticket.created_by)
 
-            if status_id == solution_status.id and ticket.status_id != solution_status.id:
-                
-                SendNotification.warning(request, 
-                "Proposta de solucao", 
-                f"O tecnico {ticket.assigned_to.get_full_name() if ticket.assigned_to else 'responsavel'} enviou uma proposta de solucao para o chamado {ticket.hash}. Confirme se foi resolvido.",
-                False,
-                ticket.created_by,
-                "solution_validation",
-                ticket.id)
+                SendNotification.success(
+                    request,
+                    "Status do chamado Atualizado",
+                    f"O chamado {ticket.hash} está {selected_status}",
+                    False,
+                    ticket.created_by
+                )
+
+            # =========================
+            # PROPOSTA DE SOLUÇÃO
+            # =========================
+            if (
+                status_id == solution_status.id
+                and ticket.status_id != solution_status.id
+            ):
+
+                SendNotification.warning(
+                    request,
+                    "Proposta de solução",
+                    f"O técnico "
+                    f"{ticket.assigned_to.get_full_name() if ticket.assigned_to else 'responsável'} "
+                    f"enviou uma proposta de solução para o chamado {ticket.hash}. "
+                    f"Confirme se foi resolvido.",
+                    False,
+                    ticket.created_by,
+                    "solution_validation",
+                    ticket.id
+                )
+
                 ticket.solution_proposed_at = timezone.now()
                 ticket.solution_responded_at = None
                 ticket.requester_solution_accepted = None
-                
 
             # =========================
             # ATUALIZAÇÃO DO CHAMADO
@@ -433,7 +518,10 @@ class TicketEditView(View):
             # =========================
             # SUCESSO
             # =========================
-            messages.success(request, "Chamado atualizado com sucesso!")
+            messages.success(
+                request,
+                "Chamado atualizado com sucesso!"
+            )
 
             return redirect(
                 "ticket_detail",
@@ -453,7 +541,6 @@ class TicketEditView(View):
                 "ticket_detail",
                 ticket_id=ticket_id
             )
-
 
     def create_report(self, request, ticket):
 
@@ -481,10 +568,28 @@ class TicketEditView(View):
             materials=materials,
         )
         
+        
+        
         SendNotification.success(request, 
         "Relatorio tecnico adicionado",
         f"O tecnico adicionou um relatorio ao chamado {ticket.hash}", 
         False, ticket.created_by)
+
+        ticket.status = Ticket_Status.objects.get(id=6)
+        ticket.save()
+        
+        SendNotification.warning(request, 
+                "Proposta de solucao", 
+                f"O tecnico {ticket.assigned_to.get_full_name() if ticket.assigned_to else 'responsavel'} enviou uma proposta de solucao para o chamado {ticket.hash}. Confirme se foi resolvido.",
+                False,
+                ticket.created_by,
+                "solution_validation",
+                ticket.id)
+        
+        ticket.solution_proposed_at = timezone.now()
+        ticket.solution_responded_at = None
+        ticket.requester_solution_accepted = None
+
 
         messages.success(request, "Relatorio tecnico adicionado com sucesso!")
         return redirect("ticket_detail", ticket_id=ticket.id)
