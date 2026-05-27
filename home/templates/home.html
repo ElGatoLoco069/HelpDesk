@@ -28,6 +28,7 @@
         </div>
     </section>
     {% if request.user.profile.is_support %}
+    {% if preferences.indicators %}
     <section class="summary">
         <article class="summary-card open">
             <div class="summary-icon">
@@ -73,7 +74,8 @@
             </div>
         </article>
     </section>
-
+    {% endif %}
+    {% if preferences.service_queue %}
     <section class="focus-grid">
         <article class="focus-card">
             <div class="focus-header">
@@ -123,6 +125,7 @@
             </div>
         </article>
     </section>
+    {% endif %}
     {% endif %}
     <section class="ticket-list">
         <div class="ticket-list-header">

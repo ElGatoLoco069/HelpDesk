@@ -18,6 +18,7 @@
 
     <section class="settings-tabs">
         <input type="radio" name="settings_tab" id="tab-profile" checked>
+        <input type="radio" name="settings_tab" id="tab-dashboard">
         {% if request.user.is_superuser %}
         <input type="radio" name="settings_tab" id="tab-notifications">
         {% endif %}
@@ -27,6 +28,13 @@
                 <i class="fas fa-user"></i>
                 Perfil
             </label>
+
+            {% if request.user.profile.is_support %}
+            <label for="tab-dashboard">
+                <i class="fas fa-chart-line"></i>
+                Dashboard
+            </label>
+            {% endif %}
 
             {% if request.user.is_superuser %}
             <label for="tab-notifications">
@@ -86,6 +94,63 @@
                 </div>
             </form>
         </article>
+
+        {% if request.user.profile.is_support %}
+        <article class="settings-card tab-panel dashboard-panel">
+
+            <div class="settings-card-header">
+                <div>
+                    <h2>Dashboard</h2>
+                    <p>Escolha quais indicadores deseja visualizar no painel inicial.</p>
+                </div>
+
+                <i class="fas fa-chart-pie"></i>
+            </div>
+
+            <form method="post" action="{% url 'update_dashboard' %}" class="settings-form">
+
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_dashboard">
+
+                <div class="dashboard-settings">
+
+                    <div class="toggle-card">
+                        <div class="toggle-content">
+                            <h3>Inidicadores</h3>
+                            <p>Mostra a quantidade de chamados abertos, em andamento, aguardando e criticos</p>
+                        </div>
+
+                        <label class="switch">
+                            <input type="checkbox" name="indicators" {% if preferences.indicators %} checked {% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-card">
+                        <div class="toggle-content">
+                            <h3>Fila de Atendimento</h3>
+                            <p>Exibe tickets que estão sendo atendidos.</p>
+                        </div>
+
+                        <label class="switch">
+                            <input type="checkbox" name="service_queue" {% if preferences.service_queue %} checked {% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                </div>
+
+                <div class="settings-actions">
+                    <button class="btn-primary" type="submit">
+                        <i class="fas fa-save"></i>
+                        Salvar dashboard
+                    </button>
+                </div>
+
+            </form>
+
+        </article>
+        {% endif %}
 
         {% if request.user.is_superuser %}
         <article class="settings-card tab-panel notifications-panel">

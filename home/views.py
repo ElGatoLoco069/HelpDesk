@@ -13,12 +13,14 @@ from django.utils import timezone
 from django.db.models import Count, Q
 from datetime import timedelta
 
+from accounts.models import UserPreferences
 
 @method_decorator(login_required(login_url="/"), name="dispatch")
 class HomeView(View):
 
     def get(self, request):
 
+        preferences = UserPreferences.objects.get(user=request.user)
         search = (request.GET.get("search") or "").strip()
         status_filter = request.GET.get("status") or ""
         priority_filter = request.GET.get("priority") or ""
@@ -288,6 +290,7 @@ class HomeView(View):
         )
 
         context = {
+                "preferences": preferences,
                 "active_page": "home",
 
                 "tickets": tickets,

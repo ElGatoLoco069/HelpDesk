@@ -13,3 +13,13 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class UserPreferences(models.Model):
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    indicators = models.BooleanField(default=True)
+    service_queue = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f"Preferências de {self.user.username}"

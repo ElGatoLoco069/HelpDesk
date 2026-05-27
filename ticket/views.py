@@ -542,6 +542,7 @@ class TicketEditView(View):
                 ticket_id=ticket_id
             )
 
+
     def create_report(self, request, ticket):
 
         if not self.is_ticket_technician(request.user, ticket):

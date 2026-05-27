@@ -7,6 +7,8 @@ from django.utils.decorators import method_decorator
 from ldap3 import Server, Connection, ALL, SUBTREE
 from django.contrib import messages
 from notifications.views import SendNotification
+from accounts.models import UserPreferences
+
 
 class AccountsView(View):
     
@@ -46,6 +48,7 @@ class AccountsView(View):
             messages.error(request, "Erro ao efetuar login")
             return redirect("account")    
 
+
     def authenticate_ad(self, username, password):
         server = Server('ldap://cafelandia.pr.gov.br', get_info=ALL)
 
@@ -60,6 +63,7 @@ class AccountsView(View):
         except Exception as e:
             print(e)
             return False
+
 
     def get_ad_user_data(self, conn, username):
         search_base = "dc=cafelandia,dc=pr,dc=gov,dc=br"
@@ -96,11 +100,11 @@ class AccountsView(View):
             "email": email or "",
         }
 
+
     def get_ad_attr(self, entry, attr_name):
         value = getattr(entry, attr_name, None)
         return str(value) if value else ""
         
-
 
 def logout_view(request):
     logout(request)
@@ -111,11 +115,15 @@ def logout_view(request):
 class SettingsView(View):
 
     def get(self, request):
+        
+        preferences = UserPreferences.objects.get(user=request.user)
+        
         return render(
             request,
             "settings.html",
             {
                 "active_page": "config",
+                "preferences": preferences,
             }
         )
 
@@ -128,6 +136,9 @@ class SettingsView(View):
 
         if action == "send_global_notification":
             return self.send_global_notification(request)
+
+        if action == "update_dashboard":
+            return self.update_dashboard(request)
 
         messages.warning(request, "Acao invalida.")
         return redirect("settings")
@@ -168,6 +179,31 @@ class SettingsView(View):
         messages.success(request, "Perfil atualizado com sucesso!")
         return redirect("settings")
 
+
+    def update_dashboard(self, request):
+        
+        user = request.user
+        indicators = request.POST.get("indicators")
+        service_queue = request.POST.get("service_queue")
+        
+        preference = UserPreferences.objects.get(user=user)
+        
+        if indicators == "on":
+            preference.indicators = True
+        else:
+            preference.indicators = False
+            
+        if service_queue == "on":
+            preference.service_queue = True
+        else:
+            preference.service_queue = False
+            
+        preference.save()
+        
+        messages.success(request, "Dashboard atualizado com sucesso!")
+        
+        return redirect("settings")
+        
 
     def send_global_notification(self, request):
         if not request.user.is_superuser:

@@ -39,6 +39,7 @@ urlpatterns = [
     path("mark-read/", mark_notifications_read, name="mark_notifications_read"),
     path("notifications/snapshot/", notifications_snapshot, name="notifications_snapshot"),
     path("notifications/events/", notifications_events, name="notifications_events"),
+    path("settings/update_dashboard/", SettingsView.as_view(), name="update_dashboard"),
 ]
 
 if settings.DEBUG:
