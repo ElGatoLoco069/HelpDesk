@@ -5,6 +5,144 @@
 const sidebar = document.querySelector(".sidebar");
 const sidebarToggleBtn = document.querySelectorAll(".sidebar-toggle");
 
+// ================================
+// LOADING GLOBAL
+// ================================
+
+const AppLoading = (() => {
+    let overlay = null;
+    let overlayTimer = null;
+
+    function ensureOverlay() {
+        if (overlay) return overlay;
+
+        overlay = document.createElement("div");
+        overlay.className = "page-loader";
+        overlay.setAttribute("role", "status");
+        overlay.setAttribute("aria-live", "polite");
+        overlay.innerHTML = `
+            <div class="page-loader-card">
+                <span class="loader-mark" aria-hidden="true"></span>
+                <span class="loader-copy">
+                    <span class="loader-title">Carregando</span>
+                    <span class="loader-text">Preparando as informacoes...</span>
+                </span>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        return overlay;
+    }
+
+    function show(message = "Preparando as informacoes...", options = {}) {
+        const currentOverlay = ensureOverlay();
+        const text = currentOverlay.querySelector(".loader-text");
+        const delay = Number(options.delay ?? 650);
+
+        if (text) {
+            text.textContent = message;
+        }
+
+        window.clearTimeout(overlayTimer);
+        overlayTimer = window.setTimeout(() => {
+            currentOverlay.classList.add("active");
+            document.body.classList.add("app-busy");
+        }, delay);
+    }
+
+    function hide() {
+        window.clearTimeout(overlayTimer);
+
+        if (overlay) {
+            overlay.classList.remove("active");
+        }
+
+        document.body.classList.remove("app-busy");
+    }
+
+    function setButton(button, label = "Aguarde...") {
+        if (!button || button.dataset.loading === "true") return;
+
+        button.dataset.loading = "true";
+        button.dataset.originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.setAttribute("aria-busy", "true");
+        button.innerHTML = `
+            <i class="fas fa-circle-notch" aria-hidden="true"></i>
+            <span>${label}</span>
+        `;
+    }
+
+    function resetButton(button) {
+        if (!button || button.dataset.loading !== "true") return;
+
+        button.innerHTML = button.dataset.originalHtml || button.innerHTML;
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+        delete button.dataset.loading;
+        delete button.dataset.originalHtml;
+    }
+
+    return {
+        show,
+        hide,
+        setButton,
+        resetButton
+    };
+})();
+
+window.AppLoading = AppLoading;
+
+document.addEventListener("submit", (event) => {
+    const form = event.target;
+
+    if (!(form instanceof HTMLFormElement) || form.dataset.skipLoading === "true") return;
+
+    const submitter = event.submitter || form.querySelector("[type='submit']");
+    AppLoading.setButton(submitter, submitter?.dataset.loadingLabel || "Enviando...");
+
+    if (!event.defaultPrevented) {
+        AppLoading.show(form.dataset.loadingMessage || "Salvando as informacoes...");
+    }
+}, true);
+
+document.addEventListener("click", (event) => {
+    if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+    ) return;
+
+    const link = event.target.closest("a[href]");
+
+    if (!link || link.target || link.hasAttribute("download")) return;
+
+    const href = link.getAttribute("href");
+
+    if (
+        !href ||
+        href.startsWith("#") ||
+        href.startsWith("javascript:") ||
+        link.dataset.skipLoading === "true"
+    ) return;
+
+    const url = new URL(href, window.location.href);
+
+    if (url.origin !== window.location.origin) return;
+
+    AppLoading.show(
+        link.dataset.loadingMessage || "Abrindo pagina...",
+        { delay: Number(link.dataset.loadingDelay || 700) }
+    );
+});
+
+window.addEventListener("pageshow", () => {
+    AppLoading.hide();
+});
+
 sidebarToggleBtn.forEach(btn => {
 
     btn.addEventListener("click", () => {
@@ -319,6 +457,7 @@ function getCookie(name) {
 if (markReadBtn) {
 
     markReadBtn.addEventListener("click", async () => {
+        AppLoading.setButton(markReadBtn, "Marcando...");
 
         try {
 
@@ -351,16 +490,20 @@ if (markReadBtn) {
                 // Feedback visual
                 markReadBtn.innerHTML = `
                     <i class="fas fa-check"></i>
-                    Todas notificações lidas
+                    Todas notificacoes lidas
                 `;
 
                 markReadBtn.disabled = true;
+                markReadBtn.removeAttribute("aria-busy");
+                delete markReadBtn.dataset.loading;
+                delete markReadBtn.dataset.originalHtml;
 
             }
 
         } catch (error) {
 
             console.error("Erro ao marcar notificações:", error);
+            AppLoading.resetButton(markReadBtn);
 
         }
 
@@ -378,6 +521,7 @@ async function refreshNotifications() {
     if (!notificationBody?.dataset.refreshUrl) return;
 
     try {
+        notificationBody.classList.add("is-loading");
 
         const response = await fetch(notificationBody.dataset.refreshUrl, {
             credentials: "same-origin",
@@ -393,6 +537,8 @@ async function refreshNotifications() {
     } catch (error) {
 
         console.error("Erro ao atualizar notificações:", error);
+    } finally {
+        notificationBody.classList.remove("is-loading");
 
     }
 

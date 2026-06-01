@@ -62,19 +62,27 @@ form.addEventListener("submit", (event) => {
     event.preventDefault();
 
     const isValid = validateForm();
+    const submitButton = document.getElementById("submitTicket");
 
     if (!isValid) {
+        window.AppLoading?.resetButton(submitButton);
+        window.AppLoading?.hide();
         showFeedback("Revise os campos destacados antes de confirmar.", "error");
         return;
     }
 
+    window.AppLoading?.setButton(submitButton, "Abrindo chamado...");
+    window.AppLoading?.show("Registrando chamado e anexos...");
     form.submit();
 });
 
 function loadSubcategories(categoryId) {
+    const field = subcategorySelect.closest(".field");
     resetSubcategories("Carregando subcategorias...");
+    field?.classList.add("is-loading");
 
     if (!categoryId) {
+        field?.classList.remove("is-loading");
         resetSubcategories("Selecione uma categoria primeiro");
         updatePreview();
         return;
@@ -107,6 +115,9 @@ function loadSubcategories(categoryId) {
             resetSubcategories("Erro ao carregar subcategorias");
             showFeedback("Nao foi possivel carregar as subcategorias.", "error");
             updatePreview();
+        })
+        .finally(() => {
+            field?.classList.remove("is-loading");
         });
 }
 
@@ -196,7 +207,7 @@ function setFieldState(inputElement, isValid) {
 
 function updateDescriptionCounter() {
     const length = descriptionInput.value.length;
-    const text = `${length}/255`;
+    const text = `${length}/355`;
 
     descriptionCounter.innerText = text;
     previewDescription.innerText = text;

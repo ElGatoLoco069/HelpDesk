@@ -123,6 +123,174 @@ html.dark body {
         var(--background-color);
 }
 
+body.app-busy {
+    cursor: progress;
+}
+
+.page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    background: rgba(243, 245, 247, 0.68);
+    backdrop-filter: blur(3px);
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+html.dark .page-loader {
+    background: rgba(16, 23, 34, 0.72);
+}
+
+.page-loader.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.page-loader-card {
+    min-width: min(330px, 100%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 18px;
+    background: var(--card-background);
+    color: var(--text-color);
+    box-shadow: 0 22px 60px rgba(34, 48, 68, 0.18);
+}
+
+html.dark .page-loader-card {
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.32);
+}
+
+.loader-mark,
+.inline-loader-mark {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 50%;
+}
+
+.loader-mark {
+    width: 46px;
+    height: 46px;
+}
+
+.inline-loader-mark {
+    width: 22px;
+    height: 22px;
+}
+
+.loader-mark::before,
+.inline-loader-mark::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 3px solid rgba(74, 144, 226, 0.16);
+    border-top-color: var(--primary-color);
+    animation: loaderSpin 0.8s linear infinite;
+}
+
+.inline-loader-mark::before {
+    border-width: 2px;
+}
+
+.loader-mark::after {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border-radius: inherit;
+    background: var(--primary-color);
+    box-shadow: 0 0 0 7px rgba(74, 144, 226, 0.10);
+}
+
+.loader-copy {
+    display: grid;
+    gap: 3px;
+}
+
+.loader-title {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.loader-text {
+    color: var(--text-light);
+    font-size: 12px;
+}
+
+.is-loading {
+    position: relative;
+    min-height: 92px;
+    pointer-events: none;
+}
+
+.is-loading::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: inherit;
+    background: rgba(255, 255, 255, 0.66);
+}
+
+html.dark .is-loading::after {
+    background: rgba(26, 36, 49, 0.68);
+}
+
+.is-loading::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 4;
+    width: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+    border: 3px solid rgba(74, 144, 226, 0.18);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: loaderSpin 0.8s linear infinite;
+}
+
+button.is-loading,
+a.is-loading {
+    min-height: unset;
+    pointer-events: none;
+}
+
+button.is-loading::before,
+a.is-loading::before,
+button.is-loading::after,
+a.is-loading::after {
+    content: none;
+}
+
+button[aria-busy="true"],
+a[aria-busy="true"] {
+    opacity: 0.82;
+    cursor: wait;
+}
+
+button[aria-busy="true"] i,
+a[aria-busy="true"] i {
+    animation: loaderSpin 0.8s linear infinite;
+}
+
+@keyframes loaderSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .sidebar {
     position: sticky;
     top: 0;

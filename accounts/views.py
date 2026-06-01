@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from django.views.generic import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from ldap3 import Server, Connection, ALL, SUBTREE
+from ldap3 import Server, Connection, NONE, SUBTREE
+from ldap3.utils.conv import escape_filter_chars
 from django.contrib import messages
 from notifications.views import SendNotification
 from accounts.models import UserPreferences
@@ -25,8 +26,12 @@ class AccountsView(View):
         
     def post(self, request):
         try: 
-            username = request.POST.get("username")
-            password = request.POST.get("password")
+            username = (request.POST.get("username") or "").strip()
+            password = request.POST.get("password") or ""
+
+            if not username or not password:
+                messages.warning(request, "Informe usuario e senha.")
+                return redirect("account")
 
             ad_user = self.authenticate_ad(username, password)
 
@@ -50,14 +55,27 @@ class AccountsView(View):
 
 
     def authenticate_ad(self, username, password):
-        server = Server('ldap://cafelandia.pr.gov.br', get_info=ALL)
+        server = Server(
+            "ldap://cafelandia.pr.gov.br",
+            get_info=NONE,
+            connect_timeout=3
+        )
 
         user = f"{username}@cafelandia.pr.gov.br"
 
         try:
-            conn = Connection(server, user=user, password=password)
+            conn = Connection(
+                server,
+                user=user,
+                password=password,
+                receive_timeout=5
+            )
+
             if conn.bind():
-                return self.get_ad_user_data(conn, username)
+                try:
+                    return self.get_ad_user_data(conn, username)
+                finally:
+                    conn.unbind()
             else:
                 return False
         except Exception as e:
@@ -67,7 +85,8 @@ class AccountsView(View):
 
     def get_ad_user_data(self, conn, username):
         search_base = "dc=cafelandia,dc=pr,dc=gov,dc=br"
-        search_filter = f"(|(sAMAccountName={username})(userPrincipalName={username}@cafelandia.pr.gov.br))"
+        safe_username = escape_filter_chars(username)
+        search_filter = f"(|(sAMAccountName={safe_username})(userPrincipalName={safe_username}@cafelandia.pr.gov.br))"
 
         conn.search(
             search_base=search_base,
@@ -107,6 +126,8 @@ class AccountsView(View):
         
 
 def logout_view(request):
+    messages.success(request, """Logout efetuado com sucesso!
+                     Até logo 👋""")
     logout(request)
     return redirect("account")
 

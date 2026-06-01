@@ -151,12 +151,14 @@
                         </option>
 
                         {% for tecnico in tecnicos %}
-                            <option value="{{tecnico.id}}"
-                                {% if filters.tecnico == tecnico.id|stringformat:"s" %}
-                                    selected
+                            <option value="{{ tecnico.id }}"
+                                {% if filters.tecnico %}
+                                    {% if filters.tecnico == tecnico.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
                                 {% endif %}
                             >
-                                {{tecnico.first_name}} {{tecnico.last_name}}
+                                {{ tecnico.first_name }} {{ tecnico.last_name }}
                             </option>
                         {% endfor %}
                     </select>
@@ -205,6 +207,7 @@
 
         selects.forEach(select => {
             select.addEventListener("change", function () {
+                window.AppLoading?.show("Aplicando filtros...", { delay: 700 });
                 form.submit();
             });
         });
@@ -218,6 +221,7 @@
             clearTimeout(timeout);
 
             timeout = setTimeout(() => {
+                window.AppLoading?.show("Buscando chamados...", { delay: 700 });
                 form.submit();
             }, 500); // 500ms
         });

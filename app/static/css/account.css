@@ -13,6 +13,10 @@ body {
     font-family: "Inter", "Segoe UI", sans-serif;
 }
 
+body.auth-busy {
+    cursor: progress;
+}
+
 .auth-page {
     min-height: 100vh;
     display: grid;
@@ -271,6 +275,78 @@ body {
 .btn-login:active {
     transform: translateY(0);
     box-shadow: none;
+}
+
+.btn-login[aria-busy="true"] {
+    opacity: 0.86;
+    cursor: wait;
+}
+
+.btn-login[aria-busy="true"] i {
+    animation: loaderSpin 0.8s linear infinite;
+}
+
+.auth-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    background: rgba(243, 245, 247, 0.7);
+    backdrop-filter: blur(3px);
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+.auth-loader.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.auth-loader-card {
+    min-width: min(300px, 100%);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 20px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 18px;
+    background: var(--card-background);
+    box-shadow: 0 22px 60px rgba(34, 48, 68, 0.18);
+}
+
+.auth-loader-mark {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    border: 3px solid rgba(74, 144, 226, 0.16);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: loaderSpin 0.8s linear infinite;
+}
+
+.auth-loader-copy {
+    display: grid;
+    gap: 3px;
+}
+
+.auth-loader-copy strong {
+    font-size: 14px;
+}
+
+.auth-loader-copy span {
+    color: var(--text-light);
+    font-size: 12px;
+}
+
+@keyframes loaderSpin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .login-footer {

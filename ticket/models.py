@@ -19,7 +19,7 @@ class Ticket(models.Model):
 
     hash = models.CharField(max_length=150, unique=True)
     title = models.ForeignKey(Subcategory, on_delete=models.PROTECT)
-    description = models.TextField(max_length=255)
+    description = models.TextField(max_length=355)
 
     status = models.ForeignKey(Ticket_Status, on_delete=models.PROTECT)
 

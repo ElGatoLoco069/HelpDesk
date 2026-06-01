@@ -63,7 +63,6 @@ class TicketView(View):
         try:
             
             categories = Category.objects.filter(status=True)
-            
             return render(
                 request, 
                 "new_ticket.html",
@@ -177,12 +176,101 @@ class TicketView(View):
                 ticket.created_by
             )
             
+            if title.assignment_method.method_type == "DEMAND":
+                AssignmentMethod.demand(request, ticket)
+            
+            if title.assignment_method.method_type == "SPECIFIC":
+                AssignmentMethod.specific(request, ticket)
+            
+            
             return ticket
         
         except Exception as e:
             print(e)
             messages.error(request, "Erro ao criar chamado!")
             return redirect("home")
+
+
+
+class AssignmentMethod(View):
+    
+    @staticmethod
+    def demand(request, ticket):
+        
+        support_users = User.objects.filter(profile__is_support=True)
+        
+        lower_support_demand = None
+        lower_demand = float('inf')
+        
+        for user in support_users:
+            
+            ticket_count = Ticket.objects.filter(assigned_to=user).exclude(status=5).count()
+            
+            if ticket_count < lower_demand:
+                lower_demand = ticket_count
+                lower_support_demand = user
+            
+        ticket.assigned_to=lower_support_demand
+        ticket.save()
+
+        SendNotification.success(
+            request,
+            "Técnico Atribuído",
+            f"O chamado {ticket.hash} foi atribuído para "
+            f"{lower_support_demand.get_full_name() if lower_support_demand else 'nenhum técnico'}.",
+            False,
+            ticket.created_by
+        )
+        
+        SendNotification.success(
+            request,
+            "Você foi Atribuido à um Novo chamado",
+            f"O chamado {ticket.hash} foi atribuído para você!",
+            False,
+            ticket.assigned_to
+        )
+
+
+    @staticmethod
+    def specific(request, ticket):
+            
+        assignment = ticket.title.assignment_method
+        
+        lower_support_demand = None
+        lower_demand = float('inf')
+
+        if assignment and assignment.technicians.exists():
+            
+            for user in assignment.technicians.all():
+                ticket_count = Ticket.objects.filter(assigned_to=user).exclude(status=5).count()
+                
+                if ticket_count < lower_demand:
+                    lower_demand = ticket_count
+                    lower_support_demand = user
+
+        ticket.assigned_to=lower_support_demand
+        ticket.save()
+
+        SendNotification.success(
+            request,
+            "Técnico Atribuído",
+            f"O chamado {ticket.hash} foi atribuído para "
+            f"{lower_support_demand.get_full_name() if lower_support_demand else 'nenhum técnico'}.",
+            False,
+            ticket.created_by
+        )
+        
+        SendNotification.success(
+            request,
+            "Você foi Atribuido à um Novo chamado",
+            f"O chamado {ticket.hash} foi atribuído para você!",
+            False,
+            ticket.assigned_to
+        )           
+
+
+
+
 
 
 @method_decorator(login_required(login_url="/"), name="dispatch")

@@ -325,6 +325,8 @@
 
             confirmBtn.onclick = null;
             confirmBtn.onclick = function () {
+                window.AppLoading?.setButton(confirmBtn, "Deletando...");
+                window.AppLoading?.show("Removendo registro...");
                 form.submit();
             };
 
@@ -409,17 +411,20 @@
 
         function loadSubcategories(categoryId, button) {
             const categoryItem = button.closest(".item");
+            const container = document.getElementById("subcategoryList");
             selectedCategory = {
                 id: categoryId,
                 name: categoryItem.querySelector(".item-title").innerText
             };
 
             document.getElementById("subcategoryContext").innerText = selectedCategory.name;
+            button.setAttribute("aria-busy", "true");
+            button.disabled = true;
+            container.classList.add("is-loading");
 
             fetch(`/subcategories/${categoryId}/`)
                 .then(response => response.json())
                 .then(data => {
-                    const container = document.getElementById("subcategoryList");
                     container.innerHTML = "";
 
                     if (data.length === 0) {
@@ -473,6 +478,20 @@
                             </div>
                         `;
                     });
+                })
+                .catch(() => {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-circle-exclamation"></i>
+                            <strong>Erro ao carregar subcategorias</strong>
+                            <span>Tente selecionar a categoria novamente.</span>
+                        </div>
+                    `;
+                })
+                .finally(() => {
+                    container.classList.remove("is-loading");
+                    button.removeAttribute("aria-busy");
+                    button.disabled = false;
                 });
         }
     </script>

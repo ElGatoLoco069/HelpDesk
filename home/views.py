@@ -94,7 +94,9 @@ class HomeView(View):
             "priority",
             "status",
             "created_by",
+            "created_by__profile",
             "assigned_to",
+            "assigned_to__profile",
         )
 
         # =========================
@@ -175,6 +177,18 @@ class HomeView(View):
         tickets = tickets.order_by(
             "-created_at"
         )[:50]
+
+        if request.GET.get("partial") == "tickets":
+            html = render_to_string(
+                "partials/ticket_list_items.html",
+                {"tickets": tickets},
+                request=request
+            )
+
+            return JsonResponse({
+                "success": True,
+                "html": html,
+            })
 
         # =========================
         # CHAMADOS DE ATENÇÃO
@@ -316,18 +330,6 @@ class HomeView(View):
                     "tecnico": tecnico_filter,
                 },
             }
-
-        if request.GET.get("partial") == "tickets":
-            html = render_to_string(
-                "partials/ticket_list_items.html",
-                context,
-                request=request
-            )
-
-            return JsonResponse({
-                "success": True,
-                "html": html,
-            })
 
         # =========================
         # RENDER

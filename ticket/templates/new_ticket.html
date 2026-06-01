@@ -112,11 +112,11 @@
                         <div class="field full">
                             <div class="label-row">
                                 <label for="description">Descricao <b style="color: red;">*</b></label>
-                                <span id="descriptionCounter">0/255</span>
+                                <span id="descriptionCounter">0/355</span>
                             </div>
                             <textarea id="description" name="description"
                                 placeholder="Descreva o problema, quando comecou e o impacto no trabalho..."
-                                minlength="15" maxlength="255" required></textarea>
+                                minlength="15" maxlength="355" required></textarea>
                             <small class="field-hint">Minimo de 15 caracteres para ajudar no atendimento.</small>
                         </div>
 
@@ -147,6 +147,7 @@
                             Cancelar
                         </a>
                         <button type="submit" class="btn-primary" id="submitTicket"
+                            data-loading-label="Abrindo chamado..."
                             title="Confirmar e enviar o chamado">
                             <i class="fas fa-paper-plane"></i>
                             Confirmar
