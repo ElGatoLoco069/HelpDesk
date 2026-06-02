@@ -48,9 +48,13 @@
         <form action="{% url 'ticket_edit' item.notification.ticket_id %}" method="post" class="notification-rating">
             {% csrf_token %}
             <input type="hidden" name="action" value="evaluate_service">
+            <input type="hidden" name="rating" id="rating_{{ item.id }}">
 
             {% for rating in "12345" %}
-            <button class="rating-action" name="rating" value="{{ rating }}" type="submit">
+            <button
+                class="rating-action"
+                type="submit"
+                onclick="document.getElementById('rating_{{ item.id }}').value='{{ rating }}'">
                 {{ rating }}
             </button>
             {% endfor %}

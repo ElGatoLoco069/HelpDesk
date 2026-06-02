@@ -802,9 +802,13 @@ class TicketEditView(View):
             messages.warning(request, "Este atendimento ja foi avaliado.")
             return redirect("ticket_detail", ticket_id=ticket.id)
 
+        rating_value = request.POST.get("rating")
+        print(request.POST)
+        print(request.body)
         try:
-            rating = int(request.POST.get("rating"))
+            rating = int(rating_value)
         except (TypeError, ValueError):
+            print(f"Rating inválido recebido: {rating_value}")
             messages.warning(request, "Selecione uma nota valida.")
             return redirect("ticket_detail", ticket_id=ticket.id)
 
