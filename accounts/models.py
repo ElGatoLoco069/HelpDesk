@@ -2,9 +2,10 @@ from django.contrib.auth.models import User
 from django.db import models
 
 class Profile(models.Model):
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
     telefone = models.CharField(max_length=20)
+    cargo = models.CharField(max_length=100,  null=True, blank=True)
     departamento = models.CharField(max_length=100)
     foto = models.ImageField(upload_to='usuarios/', null=True, blank=True)
 

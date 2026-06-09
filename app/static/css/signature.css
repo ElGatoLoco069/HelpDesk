@@ -41,19 +41,38 @@ label {
     border: none;
     background: var(--input-background);
     color: var(--text-color);
+    transition: 0.5s;
+    outline: none;
+}
+
+.input-signature:focus {
+    border-color: #3b82f6!important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2)!important;
 }
 
 .button-signature {
     width: 100%;
-    padding: 12px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
     border: none;
-    border-radius: 8px;
-    background: #001b6b;
-    color: #fff;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    margin-top: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    transition: all 0.2s ease;
 }
 
+.button-signature:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+}
 /* ==========================
    PREVIEW
 ========================== */

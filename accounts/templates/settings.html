@@ -79,6 +79,11 @@
                     </label>
 
                     <label class="settings-field">
+                        <span>Cargo</span>
+                        <input type="text" name="cargo" value="{{ request.user.profile.cargo }}" maxlength="100" placeholder="Ex.: Analista de Infraestrutura de TI">
+                    </label>
+
+                    <label class="settings-field">
                         <span>Departamento</span>
                         <input type="text" name="departamento" value="{{ request.user.profile.departamento }}" maxlength="100" placeholder="Ex.: Tecnologia da Informacao">
                     </label>
