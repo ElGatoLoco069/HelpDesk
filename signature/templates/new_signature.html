@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Assinaturas</title>
+
+    <link rel="stylesheet" href="{% static 'css/signature.css' %}">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="form-panel">
+
+        <div class="form-group">
+            <label>Nome</label>
+            <input class="input-signature"
+                   type="text"
+                   id="nome"
+                   value="{{ request.user.first_name }} {{ request.user.last_name }}">
+        </div>
+
+        <div class="form-group">
+            <label>Cargo</label>
+            <input class="input-signature"
+                   type="text"
+                   id="cargo"
+                   value="Infraestrutura TI">
+        </div>
+
+        <div class="form-group">
+            <label>Departamento</label>
+            <input class="input-signature"
+                   type="text"
+                   id="departamento"
+                   value="{{ user.profile.departamento }}">
+        </div>
+
+        <div class="form-group">
+            <label>Telefone / Celular</label>
+            <input class="input-signature"
+                   type="text"
+                   id="celular"
+                   value="{{user.profile.telefone}}">
+        </div>
+
+        <div class="form-group">
+            <label>E-mail</label>
+            <input class="input-signature"
+                   type="email"
+                   id="email"
+                   value="{{ request.user.email }}">
+        </div>
+
+        <button class="button-signature" id="downloadBtn">
+            Baixar Assinatura
+        </button>
+
+    </div>
+
+    <div class="preview-panel">
+
+        <!-- Apenas visual -->
+        <div class="signature-preview">
+
+            <!-- Tamanho real para exportação -->
+            <div id="signature">
+
+                <div class="left">
+
+                    <img id="logoPreview"
+                         src="{% static 'images/brasao.png' %}"
+                         alt="Brasão">
+
+                    <div class="prefeitura">
+                        PREFEITURA DE
+                    </div>
+
+                    <div class="cidade">
+                        CAFELÂNDIA
+                    </div>
+
+                    <div class="slogan">
+                        UNIÃO, LIBERDADE, PROGRESSO
+                    </div>
+
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="right">
+
+                    <h1 id="previewNome">
+                        {{ request.user.first_name }} {{ request.user.last_name }}
+                    </h1>
+
+                    <h2 id="previewCargo">
+                        Infraestrutura TI
+                    </h2>
+
+                    <p id="previewDepartamento">
+                        {{ user.profile.departamento }}
+                    </p>
+
+                    <div class="line"></div>
+
+                    <div class="contact-row">
+
+                        <div>
+                            <div class="signature-icon">☎</div>
+                            <span id="previewCelular">
+                                {{user.profile.telefone}}
+                            </span>
+                        </div>
+
+                        <div>
+                            <div class="signature-icon">☎</div>
+                            <span id="previewTelefone">
+                                (45) 3241-4300
+                            </span>
+                        </div>
+
+                    </div>
+
+                    <div class="contact">
+                        <div class="signature-icon">✉</div>
+                        <span id="previewEmail">
+                            {{ request.user.email }}
+                        </span>
+                    </div>
+
+                    <div class="contact">
+                        <div class="signature-icon">🌐</div>
+                        <span id="previewSite">
+                            www.cafelandia.pr.gov.br
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="{% static 'js/signature.js' %}"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+document.getElementById("downloadBtn")
+.addEventListener("click", async () => {
+
+    await document.fonts.ready;
+
+    const assinatura =
+        document.getElementById("signature");
+
+    const canvas =
+        await html2canvas(assinatura, {
+            backgroundColor: "#ffffff",
+            scale: 2,
+            useCORS: true,
+            logging: false
+        });
+
+    const link =
+        document.createElement("a");
+
+    link.download = "assinatura.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+});
+</script>
+
+</body>
+
+{% endblock %}

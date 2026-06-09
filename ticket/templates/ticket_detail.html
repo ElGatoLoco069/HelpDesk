@@ -318,15 +318,26 @@
 
             <div class="interaction-actions">
 
-                <label class="attachment-button">
+                <div class="field full">
+                    <label for="attachments">Anexos</label>
 
-                    <input type="file" name="attachment" hidden>
+                    <div class="file-upload" id="fileUpload">
+                        <input type="file" id="attachments" name="attachments" accept=".png,.jpg,.jpeg,.pdf"
+                            multiple hidden>
 
-                    <i class="fas fa-paperclip"></i>
+                        <div class="file-upload-area">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>
+                                Arraste arquivos ou
+                                <span class="file-link">clique para selecionar</span>
+                            </p>
+                            <small>PNG, JPG ou PDF ate 10MB por arquivo</small>
+                        </div>
 
-                    Anexar arquivo
-
-                </label>
+                        <p class="upload-feedback" id="uploadFeedback"></p>
+                        <div class="file-list" id="fileList"></div>
+                    </div>
+                </div>
 
                 <button class="btn-primary" type="submit">
 
@@ -338,6 +349,7 @@
 
             </div>
 
+        
         </form>
 
     </article>
@@ -602,6 +614,7 @@
         </div>
     </article>
 </section>
+
 <script>
 
 function setupInteractionShowMore() {
@@ -703,4 +716,6 @@ items.forEach((item, index) => {
 });
 </script>
 </body>
+
+<script src="{% static 'js/new_ticket.js' %}"></script>
 {% endblock %}

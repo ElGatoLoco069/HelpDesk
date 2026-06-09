@@ -1,0 +1,220 @@
+* {
+    box-sizing: border-box;
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    padding: 15px;
+    margin: 0;
+}
+
+/* ==========================
+   FORMULÁRIO
+========================== */
+
+.form-panel {
+    flex: 0 0 400px;
+    background: var(--card-background);
+    color: var(--text-color);
+    padding: 15px;
+    border-radius: 15px;
+    height: fit-content;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.input-signature {
+    width: 100%;
+    height: 44px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: none;
+    background: var(--input-background);
+    color: var(--text-color);
+}
+
+.button-signature {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #001b6b;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+/* ==========================
+   PREVIEW
+========================== */
+
+.preview-panel {
+    flex: 1;
+    overflow-x: visible!important;
+    overflow-y: visible!important;
+    padding: 20px;
+}
+
+#signature {
+    width: 900px;
+    background: #fff;
+    border: 2px solid #0d1d5c;
+    border-radius: 20px;
+    padding: 35px;
+    display: flex;
+}
+
+/* ==========================
+   ESQUERDA
+========================== */
+
+.left {
+    width: 35%;
+    text-align: center;
+}
+
+.left img {
+    width: 220px;
+    max-height: 250px;
+    object-fit: contain;
+}
+
+.prefeitura {
+    margin-top: 15px;
+    font-size: 18px;
+    color: #10216a;
+}
+
+.cidade {
+    font-size: 48px;
+    font-weight: 800;
+    color: #10216a;
+}
+
+.slogan {
+    font-size: 15px;
+    color: #666;
+}
+
+/* ==========================
+   DIVISÓRIA
+========================== */
+
+.divider {
+    width: 2px;
+    background: #10216a;
+    margin: 0 30px;
+}
+
+/* ==========================
+   DIREITA
+========================== */
+
+.right {
+    flex: 1;
+}
+
+.right h1 {
+    font-size: 35px;
+    color: #06176b;
+    margin-bottom: 5px;
+    line-height: 1.1;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.right h2 {
+    font-size: 32px;
+    color: #c9a128;
+    margin-bottom: 15px;
+    line-height: 1.1;
+    font-weight: bold;
+}
+
+.right p {
+    font-size: 22px;
+    color: #333;
+}
+
+.line {
+    width: 280px;
+    height: 2px;
+    background: #c9a128;
+    margin: 25px 0;
+}
+
+/* ==========================
+   CONTATOS
+========================== */
+
+.contact-row {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 10px;
+}
+
+.contact,
+.contact-row div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.signature-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    background: #06176b;
+    color: #fff;
+
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#previewNome,
+#previewCargo,
+#previewDepartamento,
+#previewEmail,
+#previewSite,
+#previewCelular,
+#previewTelefone {
+    word-break: break-word;
+}
+
+/* ==========================
+   RESPONSIVO
+========================== */
+
+@media (max-width: 1024px) {
+
+    .container {
+        flex-direction: column;
+    }
+
+    .form-panel {
+        width: 100%;
+        flex: none;
+    }
+
+    .preview-panel {
+        width: 100%;
+    }
+}

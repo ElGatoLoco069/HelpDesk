@@ -1027,6 +1027,104 @@
     transform: scale(0.98);
 }
 
+/* CONTAINER */
+.file-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* AREA DRAG */
+.file-upload-area {
+    border: 2px dashed #cbd5f5;
+    border-radius: 14px;
+    padding: 28px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: rgba(148, 163, 184, 0.05);
+}
+
+.file-upload-area:hover {
+    border-color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+/* DRAG ATIVO */
+.file-upload.dragover .file-upload-area {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.12);
+}
+
+/* ICON */
+.file-upload-area i {
+    font-size: 28px;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+/* TEXTO */
+.file-upload-area p {
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.file-upload-area small {
+    color: var(--text-light);
+}
+
+.file-link {
+    color: var(--primary-color);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* LISTA DE ARQUIVOS */
+.file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ITEM */
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--input-background);
+    color: var(--text-light);
+
+    font-size: 13px;
+}
+
+/* INFO */
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* BOTÃO REMOVER */
+.file-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 25px;
+    width: 25px;
+    border-radius: 16px;
+
+    cursor: pointer;
+    background: transparent;
+    color: #ef4444;
+    font-size: 14px;
+
+}
+
+
 @media (max-width: 1180px) {
     .detail-summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));

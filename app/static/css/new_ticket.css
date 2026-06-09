@@ -375,9 +375,24 @@ textarea:focus {
 
 /* BOTÃO REMOVER */
 .file-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 25px;
+    width: 25px;
+    border-radius: 10px;
+    border: none;
     cursor: pointer;
+    background: transparent;
     color: #ef4444;
     font-size: 14px;
+
+    transition: 0.5s;
+}
+
+.file-remove:hover {
+    border: 1px solid #ef4444;
 }
 
 /* =============================

@@ -23,6 +23,7 @@ from home.views import HomeView
 from ticket.views import TicketDetailView, TicketEditView, TicketView, AddMessage
 from registers.views import CategoryView, get_subcategories
 from notifications.views import mark_notifications_read, notifications_events, notifications_snapshot
+from signature.views import SignatureView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,6 +36,7 @@ urlpatterns = [
     path("tickets/<int:ticket_id>/edit/", TicketEditView.as_view(), name="ticket_edit"),
     path("tickets/add_message/", AddMessage.as_view(), name="add_message"),
     path("registers/categories/", CategoryView.as_view(), name="categories"),
+    path("registers/singnature/new_singnature/", SignatureView.as_view(), name="new_signature"),
     path("subcategories/<int:category_id>/", get_subcategories, name="get_subcategories"),
     path("mark-read/", mark_notifications_read, name="mark_notifications_read"),
     path("notifications/snapshot/", notifications_snapshot, name="notifications_snapshot"),

@@ -17,7 +17,6 @@ class Priority(models.Model):
         return self.name
     
 
-
 class AssignmentMethod(models.Model):
 
     class MethodType(models.TextChoices):
@@ -49,6 +48,7 @@ class AssignmentMethod(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_method_type_display()})"
 
+
 class Category(models.Model):
     
     name = models.CharField(max_length=150, unique=True)
@@ -78,3 +78,4 @@ class Subcategory(models.Model):
     
     def __str__(self):
         return self.name
+    

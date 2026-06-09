@@ -69,6 +69,11 @@
                     </label>
 
                     <label class="settings-field">
+                        <span>E-mail</span>
+                        <input type="text" name="email" value="{{ request.user.email }}" placeholder="Ex.: exemplo@email.com">
+                    </label>
+
+                    <label class="settings-field">
                         <span>Telefone/Ramal</span>
                         <input type="text" name="telefone" value="{{ request.user.profile.telefone }}" maxlength="20" placeholder="Ex.: 525 ou (45) 0000-0000" id="phone">
                     </label>

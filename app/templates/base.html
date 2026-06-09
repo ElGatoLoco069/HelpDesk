@@ -72,6 +72,15 @@
                                     <span>Novo Chamado</span>
                                 </a>
                             </li>
+
+                            <li>
+                            <a href="{% url 'new_signature' %}" class="submenu-link {% if active_page == 'new_signature' %}active{% endif %}" 
+                                title="Acessar formulario de criação de assinaturas">
+                                    <i class="fas fa-file-signature"></i>
+                                    <span>Nova Assinatura</span>
+                                </a>
+                            </li>
+
                             {% if request.user.profile.is_support %}
                             <li>
                                 <a href="{% url 'categories' %}" class="submenu-link {% if active_page == 'categories' %}active{% endif %}"

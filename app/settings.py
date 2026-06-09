@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'home',
     'ticket',
     'registers',
-    'notifications'
+    'notifications',
+    'signature',
 ]
 
 MIDDLEWARE = [
@@ -137,3 +138,27 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "app" / "static",
 ]
+
+JAZZMIN_SETTINGS = {
+
+    "icons": {
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        
+        "accounts.UserPreferences": "fas fa-user-gear",
+        
+        "registers.Category": "fas fa-tag",
+        "registers.Subcategory": "fas fa-tags",
+        "registers.AssignmentMethod": "fas fa-user-check",
+        "registers.Priority": "fas fa-circle-exclamation",
+
+        "notifications.NotificationType": "fas fa-bell",
+        "notifications.Notification": "fas fa-bell",
+        "notifications.UserNotification": "fas fa-user-tag",
+        
+        "ticket.TicketReport": "fas fa-file-lines",
+        "ticket.TicketAttachment": "fas fa-paperclip",
+        "ticket.Ticket": "fas fa-ticket",
+        "ticket.Ticket_Status": "fas fa-chart-simple",
+    },
+}

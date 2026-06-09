@@ -168,6 +168,7 @@ class SettingsView(View):
     def update_profile(self, request):
         first_name = (request.POST.get("first_name") or "").strip()
         last_name = (request.POST.get("last_name") or "").strip()
+        email = (request.POST.get("email") or "").strip()
         telefone = (request.POST.get("telefone") or "").strip()
         departamento = (request.POST.get("departamento") or "").strip()
         refresh_seconds = request.POST.get("ticket_auto_refresh_seconds")
@@ -178,7 +179,8 @@ class SettingsView(View):
 
         request.user.first_name = first_name
         request.user.last_name = last_name
-        request.user.save(update_fields=["first_name", "last_name"])
+        request.user.email = email
+        request.user.save(update_fields=["first_name", "last_name", "email"])
 
         profile = request.user.profile
         profile.telefone = telefone
