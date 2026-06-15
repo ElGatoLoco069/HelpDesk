@@ -1125,6 +1125,282 @@
 }
 
 
+/* ==========================
+   MODAL
+========================== */
+
+.custom-modal .modal-content {
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 0;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(74, 144, 226, 0.05),
+            transparent 140px
+        ),
+        var(--card-background);
+    color: var(--text-color);
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.18),
+        0 4px 12px rgba(0, 0, 0, 0.06);
+
+    animation: modalAppear .18s ease-out;
+}
+
+.custom-modal .modal-body {
+    padding: 24px;
+}
+
+@keyframes modalAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ==========================
+   CABEÇALHO
+========================== */
+
+.modal-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding: 18px;
+    border-radius: 14px;
+    text-align: left;
+    background: var(--input-background);
+}
+
+.modal-heading.danger {
+    background: rgba(201, 92, 92, 0.10);
+}
+
+.modal-heading.approval {
+    background: rgba(74, 144, 226, 0.10);
+}
+
+.modal-icon {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: rgba(74, 144, 226, 0.14);
+    color: var(--primary-color);
+    font-size: 18px;
+}
+
+.modal-heading.danger .modal-icon {
+    background: rgba(201, 92, 92, 0.14);
+    color: var(--danger-color);
+}
+
+.modal-heading.approval .modal-icon {
+    background: rgba(74, 144, 226, 0.14);
+    color: var(--primary-color);
+}
+
+.custom-modal h4 {
+    margin: 0 0 4px;
+    color: var(--text-color);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.custom-modal p {
+    margin: 0;
+    max-width: 480px;
+    color: var(--text-light);
+    line-height: 1.55;
+}
+
+/* ==========================
+   FORMULÁRIO
+========================== */
+
+.modal-fieldset {
+    padding: 18px;
+    border-radius: 14px;
+    background: var(--item-background);
+    border: 1px solid var(--border-color);
+}
+
+.modal-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    text-align: left;
+}
+
+.modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.modal-field.full {
+    grid-column: 1 / -1;
+}
+
+.modal-field span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.modal_input {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    outline: none;
+
+    background: var(--input-background);
+    color: var(--text-color);
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        background .2s ease;
+}
+
+textarea.modal_input {
+    min-height: 120px;
+    padding: 12px 14px;
+    resize: vertical;
+}
+
+.modal_input:hover {
+    border-color: rgba(74, 144, 226, 0.20);
+}
+
+.modal_input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.12);
+}
+
+.modal_input[readonly] {
+    color: var(--text-light);
+    cursor: default;
+}
+
+/* ==========================
+   RODAPÉ
+========================== */
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+
+    margin-top: 20px;
+    padding-top: 18px;
+
+    border-top: 1px solid var(--border-color);
+}
+
+/* ==========================
+   BOTÕES
+========================== */
+
+.custom-modal .btn-light {
+    border: none;
+    border-radius: 10px;
+
+    background: var(--input-background);
+    color: var(--text-color);
+
+    font-weight: 600;
+    min-height: 42px;
+    padding: 0 18px;
+
+    transition: .2s ease;
+}
+
+.custom-modal .btn-light:hover {
+    background: var(--item-background);
+    transform: translateY(-1px);
+}
+
+.custom-modal .btn-primary {
+    border: none;
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--primary-color),
+            var(--primary-hover)
+        );
+
+    color: #fff;
+    font-weight: 600;
+
+    min-height: 42px;
+    padding: 0 18px;
+
+    transition: .2s ease;
+}
+
+.custom-modal .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.25);
+}
+
+.custom-modal .btn-danger {
+    border: none;
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--danger-color),
+            var(--danger-hover)
+        );
+
+    color: #fff;
+    font-weight: 600;
+
+    min-height: 42px;
+    padding: 0 18px;
+
+    transition: .2s ease;
+}
+
+.custom-modal .btn-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(201, 92, 92, 0.25);
+}
+
+.custom-modal .btn-primary:disabled,
+.custom-modal .btn-danger:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ==========================
+   BACKDROP
+========================== */
+
+.modal-backdrop.show {
+    opacity: .55;
+    backdrop-filter: blur(3px);
+}
+
+
 @media (max-width: 1180px) {
     .detail-summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));

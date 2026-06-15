@@ -75,12 +75,15 @@
 
                     <label class="settings-field">
                         <span>Telefone/Ramal</span>
-                        <input type="text" name="telefone" value="{{ request.user.profile.telefone }}" maxlength="20" placeholder="Ex.: 525 ou (45) 0000-0000" id="phone">
+                        <input type="text" name="telefone" 
+                        value="{{ request.user.profile.telefone }}" maxlength="20" placeholder="Ex.: 525 ou (45) 0000-0000" id="phone">
                     </label>
 
                     <label class="settings-field">
                         <span>Cargo</span>
-                        <input type="text" name="cargo" value="{{ request.user.profile.cargo }}" maxlength="100" placeholder="Ex.: Analista de Infraestrutura de TI">
+                        <input type="text" name="cargo" 
+                        value="{% if request.user.profile.cargo %}{{ request.user.profile.cargo }}{% endif %}" 
+                        maxlength="100" placeholder="Ex.: Analista de Infraestrutura de TI">
                     </label>
 
                     <label class="settings-field">

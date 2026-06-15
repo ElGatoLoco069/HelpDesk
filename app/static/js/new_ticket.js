@@ -207,7 +207,7 @@ function setFieldState(inputElement, isValid) {
 
 function updateDescriptionCounter() {
     const length = descriptionInput.value.length;
-    const text = `${length}/355`;
+    const text = `${length}/550`;
 
     descriptionCounter.innerText = text;
     previewDescription.innerText = text;

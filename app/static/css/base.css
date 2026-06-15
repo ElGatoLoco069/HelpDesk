@@ -1091,6 +1091,16 @@ li {
     border-color: rgba(59, 130, 246, 0.22);
 }
 
+.notification-item[data-url] {
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.notification-item[data-url]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.12);
+}
+
 @keyframes notificationShow {
     from {
         opacity: 0;

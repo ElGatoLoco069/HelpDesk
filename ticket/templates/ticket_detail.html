@@ -27,6 +27,16 @@
 
         {% if ticket.status.id != 5 %}
             {% if request.user.profile.is_support %}
+
+            <button
+                class="btn-primary"
+                type="button"
+                data-ticket-id="{{ ticket.id }}"
+                onclick="openApprovalModal(this)">
+                <i class="fas fa-clipboard-check"></i>
+                Solicitar Autorização
+            </button>
+
             <a href="{% url 'ticket_edit' ticket.id %}" class="btn-primary" title="Editar {{ ticket.hash }}">
                 <i class="fas fa-pen"></i>
                 Editar
@@ -615,6 +625,104 @@
     </article>
 </section>
 
+<div class="modal fade custom-modal" id="approvalModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <form id="approvalForm" method="post" action="">
+                {% csrf_token %}
+
+                <input type="hidden" name="ticket_id" id="approvalTicketId">
+
+                <div class="modal-body">
+
+                    <div class="modal-heading approval">
+                        <span class="modal-icon">
+                            <i class="fas fa-clipboard-check"></i>
+                        </span>
+
+                        <div>
+                            <h4>Solicitar Autorização</h4>
+
+                            <p>
+                                Este atendimento necessita da aprovação de um responsável antes de continuar.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="modal-fieldset">
+
+                        <div class="modal-form-grid">
+
+                            <div class="modal-field full">
+                                <span>Responsável pela aprovação</span>
+
+                                <select
+                                    name="approver"
+                                    id="approvalUser"
+                                    class="modal_input"
+                                    required>
+
+                                    <option value="">
+                                        Selecione um responsável
+                                    </option>
+
+                                    {% for user in approvers %}
+                                        <option value="{{ user.id }}">
+                                            {{ user.get_full_name|default:user.username }}
+                                        </option>
+                                    {% endfor %}
+
+                                </select>
+                            </div>
+
+                            <div class="modal-field full">
+                                <span>Motivo da solicitação</span>
+
+                                <textarea
+                                    name="reason"
+                                    id="approvalReason"
+                                    class="modal_input"
+                                    style="height:120px;padding:12px;resize:none;"
+                                    placeholder="Informe o motivo da necessidade de autorização..."
+                                    required></textarea>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="actions modal-actions">
+
+                        <button
+                            class="btn btn-light"
+                            data-bs-dismiss="modal"
+                            type="button">
+                            Cancelar
+                        </button>
+
+                        <button
+                            id="confirmApproval"
+                            class="btn btn-primary"
+                            type="submit">
+
+                            <i class="fas fa-paper-plane"></i>
+                            Solicitar Autorização
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+
 <script>
 
 function setupInteractionShowMore() {
@@ -713,6 +821,37 @@ items.forEach((item, index) => {
         expanded
     );
 
+});
+
+function openApprovalModal(button) {
+
+    const ticketId = button.dataset.ticketId;
+
+    document.getElementById(
+        "approvalTicketId"
+    ).value = ticketId;
+
+    const modal = new bootstrap.Modal(
+        document.getElementById("approvalModal")
+    );
+
+    modal.show();
+}
+
+document.getElementById("approvalForm")
+?.addEventListener("submit", function () {
+
+    const btn =
+        document.getElementById("confirmApproval");
+
+    window.AppLoading?.setButton(
+        btn,
+        "Solicitando..."
+    );
+
+    window.AppLoading?.show(
+        "Enviando solicitação de autorização..."
+    );
 });
 </script>
 </body>

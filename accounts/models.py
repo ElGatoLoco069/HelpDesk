@@ -24,3 +24,11 @@ class UserPreferences(models.Model):
     
     def __str__(self):
         return f"Preferências de {self.user.username}"
+    
+
+
+class System(models.Model):
+    under_maintenance = models.BooleanField(
+        verbose_name="Em manutenção",
+        default=False
+    )

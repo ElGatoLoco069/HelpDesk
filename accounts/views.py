@@ -8,7 +8,7 @@ from ldap3 import Server, Connection, NONE, SUBTREE
 from ldap3.utils.conv import escape_filter_chars
 from django.contrib import messages
 from notifications.views import SendNotification
-from accounts.models import UserPreferences
+from accounts.models import UserPreferences, System
 
 
 class AccountsView(View):
@@ -41,6 +41,11 @@ class AccountsView(View):
                 user.last_name = ad_user["last_name"]
                 user.email = ad_user["email"]
                 user.save()
+
+                system = System.objects.get(id=1)
+                
+                if system.under_maintenance:
+                    return render(request, "maintenance.html")
 
                 login(request, user)
                 messages.success(request, "Usuario logado com sucesso!")
@@ -252,3 +257,5 @@ class SettingsView(View):
 
         messages.success(request, "Notificacao enviada para todos os usuarios.")
         return redirect("settings")
+
+

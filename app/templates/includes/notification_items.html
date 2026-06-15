@@ -1,6 +1,7 @@
 {% for item in notifications %}
 
-<div class="notification-item {% if not item.read %}unread{% endif %}">
+<div class="notification-item {% if not item.read %}unread{% endif %}" {% if item.notification.ticket_id %}
+    data-url="{% url 'ticket_detail' item.notification.ticket_id %}" {% endif %}>
 
     <div class="notification-icon {{ item.notification.type.color }}">
         <i class="{{ item.notification.type.icon }}"></i>
@@ -22,10 +23,12 @@
 
         {% if item.notification.action_kind == "solution_validation" and item.notification.ticket_id %}
         <div class="notification-actions">
+
             <form action="{% url 'ticket_edit' item.notification.ticket_id %}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="respond_solution">
                 <input type="hidden" name="resolved" value="yes">
+
                 <button class="notification-action success" type="submit">
                     <i class="fas fa-check"></i>
                     Resolvido
@@ -36,39 +39,76 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="respond_solution">
                 <input type="hidden" name="resolved" value="no">
+
                 <button class="notification-action warning" type="submit">
                     <i class="fas fa-rotate-left"></i>
-                    Nao resolvido
+                    Não resolvido
                 </button>
             </form>
+
         </div>
         {% endif %}
 
         {% if item.notification.action_kind == "service_evaluation" and item.notification.ticket_id %}
         <form action="{% url 'ticket_edit' item.notification.ticket_id %}" method="post" class="notification-rating">
+
             {% csrf_token %}
             <input type="hidden" name="action" value="evaluate_service">
             <input type="hidden" name="rating" id="rating_{{ item.id }}">
 
             {% for rating in "12345" %}
-            <button
-                class="rating-action"
-                type="submit"
+            <button class="rating-action" type="submit"
                 onclick="document.getElementById('rating_{{ item.id }}').value='{{ rating }}'">
                 {{ rating }}
             </button>
             {% endfor %}
+
         </form>
         {% endif %}
 
     </div>
+
 
 </div>
 
 {% empty %}
 
 <div class="notification-empty">
-    Nenhuma notificacao encontrada.
+    Nenhuma notificação encontrada.
 </div>
 
 {% endfor %}
+
+<script>
+document.addEventListener("click", function (e) {
+
+    const notification = e.target.closest(".notification-item[data-url]");
+
+    if (!notification) {
+        return;
+    }
+
+    if (
+        e.target.closest("button") ||
+        e.target.closest("form") ||
+        e.target.closest(".notification-actions") ||
+        e.target.closest(".notification-rating")
+    ) {
+        return;
+    }
+
+    window.location.href = notification.dataset.url;
+
+});
+</script>
+
+<style>
+    .notification-item[data-url] {
+        cursor: pointer;
+        transition: all .2s ease;
+    }
+
+    .notification-item[data-url]:hover {
+        transform: translateY(-2px);
+    }
+</style>

@@ -173,7 +173,8 @@ class TicketView(View):
                 request, 
                 "Chamado Criado", f"Chamado {ticket_hash} criado com sucesso!",
                 False,
-                ticket.created_by
+                ticket.created_by,
+                ticket_id=ticket.id
             )
             
             if title.assignment_method.method_type == "DEMAND":
@@ -219,7 +220,8 @@ class AssignmentMethod(View):
             f"O chamado {ticket.hash} foi atribuído para "
             f"{lower_support_demand.get_full_name() if lower_support_demand else 'nenhum técnico'}.",
             False,
-            ticket.created_by
+            ticket.created_by,
+            ticket_id=ticket.id
         )
         
         SendNotification.success(
@@ -227,7 +229,8 @@ class AssignmentMethod(View):
             "Você foi Atribuido à um Novo chamado",
             f"O chamado {ticket.hash} foi atribuído para você!",
             False,
-            ticket.assigned_to
+            ticket.assigned_to,
+            ticket_id=ticket.id
         )
 
 
@@ -257,7 +260,8 @@ class AssignmentMethod(View):
             f"O chamado {ticket.hash} foi atribuído para "
             f"{lower_support_demand.get_full_name() if lower_support_demand else 'nenhum técnico'}.",
             False,
-            ticket.created_by
+            ticket.created_by,
+            ticket_id=ticket.id
         )
         
         SendNotification.success(
@@ -265,11 +269,9 @@ class AssignmentMethod(View):
             "Você foi Atribuido à um Novo chamado",
             f"O chamado {ticket.hash} foi atribuído para você!",
             False,
-            ticket.assigned_to
+            ticket.assigned_to,
+            ticket_id=ticket.id
         )           
-
-
-
 
 
 
@@ -497,7 +499,8 @@ class TicketEditView(View):
                     f"O chamado {ticket.hash} foi atribuído para "
                     f"{assigned_user.get_full_name() if assigned_user else 'nenhum técnico'}.",
                     False,
-                    ticket.created_by
+                    ticket.created_by,
+                    ticket_id=ticket.id
                 )
 
                 # força status para EM ATENDIMENTO
@@ -566,7 +569,8 @@ class TicketEditView(View):
                     "Status do chamado Atualizado",
                     f"O chamado {ticket.hash} está {selected_status}",
                     False,
-                    ticket.created_by
+                    ticket.created_by,
+                    ticket_id=ticket.id
                 )
 
             # =========================
@@ -587,7 +591,7 @@ class TicketEditView(View):
                     False,
                     ticket.created_by,
                     "solution_validation",
-                    ticket.id
+                    ticket.id,
                 )
 
                 ticket.solution_proposed_at = timezone.now()
@@ -662,7 +666,7 @@ class TicketEditView(View):
         SendNotification.success(request, 
         "Relatorio tecnico adicionado",
         f"O tecnico adicionou um relatorio ao chamado {ticket.hash}", 
-        False, ticket.created_by)
+        False, ticket.created_by, ticket_id=ticket.id)
 
         ticket.status = Ticket_Status.objects.get(id=6)
         ticket.save()
@@ -773,7 +777,8 @@ class TicketEditView(View):
                 "Chamado nao resolvido",
                 f"O solicitante marcou o chamado {ticket.hash} como nao resolvido. Revise a proposta de solucao.",
                 False,
-                ticket.assigned_to
+                ticket.assigned_to,
+                ticket_id=ticket.id
             )
 
         UserNotification.objects.filter(
@@ -832,7 +837,8 @@ class TicketEditView(View):
                 "Atendimento avaliado",
                 f"O solicitante avaliou o chamado {ticket.hash} com nota {rating}/5.",
                 False,
-                ticket.assigned_to
+                ticket.assigned_to,
+                ticket_id=ticket.id
             )
 
         UserNotification.objects.filter(
@@ -884,7 +890,8 @@ class AddMessage(View):
                 "Nova mensagem recebida",
                 f"O solicitante acabou de enviar uma nova mensagem sobre o chamado {ticket.hash}",
                 False,
-                ticket.assigned_to
+                ticket.assigned_to,
+                ticket_id=ticket.id
             )
 
         elif ticket.assigned_to == request.user:
@@ -894,7 +901,8 @@ class AddMessage(View):
                 "Nova mensagem recebida",
                 f"O técnico acabou de enviar uma nova mensagem sobre o chamado {ticket.hash}",
                 False,
-                ticket.created_by
+                ticket.created_by,
+                ticket_id=ticket.id
             )
 
         return redirect("ticket_detail", ticket.id)

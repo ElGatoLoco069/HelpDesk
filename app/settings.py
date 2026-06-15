@@ -29,6 +29,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "192.168.0.18",
+    "helpdesk.cafelandia.pr.gov.br",
 ]
 
 SESSION_COOKIE_AGE = 3600 
