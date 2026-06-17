@@ -10,7 +10,6 @@ from system.models import SystemSettings
 
 
 def is_under_maintenance(request):
-
     settings = SystemSettings.objects.first()
 
     if settings and settings.status == "maintenance":
@@ -21,24 +20,21 @@ def is_under_maintenance(request):
 
 @method_decorator(login_required(login_url="/"), name="dispatch")
 class SystemView(View):
-    
-    online_users = Profile.objects.filter(
-    last_activity__gte=timezone.now() - timedelta(minutes=5)
-    )
 
-    total_online = online_users.count()
-    total_tickets = Ticket.objects.all().count()
-    
     def get(self, request):
-        
-        return render(request, 
-                      "maintenance_center.html",
-                      {
-                          "active_page": "maintenance_center",
-                          "online_users": self.total_online,
-                          "total_tickets": self.total_tickets,
-                      })
-    
-    
+        online_users = Profile.objects.filter(
+            last_activity__gte=timezone.now() - timedelta(minutes=5)
+        )
 
-    
+        total_online = online_users.count()
+        total_tickets = Ticket.objects.count()
+
+        return render(
+            request,
+            "maintenance_center.html",
+            {
+                "active_page": "maintenance_center",
+                "online_users": total_online,
+                "total_tickets": total_tickets,
+            }
+        )
