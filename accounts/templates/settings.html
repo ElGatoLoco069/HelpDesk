@@ -1,13 +1,16 @@
+
 {% extends "base.html" %}
 {% load static %}
 
 {% block content %}
+
 <head>
     <title>Configuracoes | Help Desk</title>
     <link rel="stylesheet" href="{% static 'css/settings.css' %}">
 </head>
 
 <body>
+
     <section class="settings-header">
         <div>
             <span class="eyebrow">Configuracoes</span>
@@ -17,13 +20,22 @@
     </section>
 
     <section class="settings-tabs">
+
         <input type="radio" name="settings_tab" id="tab-profile" checked>
+
+        {% if request.user.profile.is_support %}
         <input type="radio" name="settings_tab" id="tab-dashboard">
+        {% endif %}
+
         {% if request.user.is_superuser %}
         <input type="radio" name="settings_tab" id="tab-notifications">
         {% endif %}
 
+        <!-- Navegação -->
         <div class="tab-list">
+
+            <div class="nav-slider"></div>
+
             <label for="tab-profile">
                 <i class="fas fa-user"></i>
                 Perfil
@@ -42,61 +54,94 @@
                 Notificacoes
             </label>
             {% endif %}
+
         </div>
 
+        <!-- PERFIL -->
         <article class="settings-card tab-panel profile-panel">
+
             <div class="settings-card-header">
                 <div>
                     <h2>Dados do usuario</h2>
                     <p>Essas informacoes aparecem nos chamados e no cabecalho do sistema.</p>
                 </div>
+
                 <i class="fas fa-id-card"></i>
             </div>
 
             <form method="post" class="settings-form">
+
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update_profile">
 
                 <div class="settings-grid">
+
                     <label class="settings-field">
                         <span>Nome</span>
-                        <input type="text" name="first_name" value="{{ request.user.first_name }}" maxlength="150" required>
+                        <input type="text"
+                               name="first_name"
+                               value="{{ request.user.first_name }}"
+                               maxlength="150"
+                               required>
                     </label>
 
                     <label class="settings-field">
                         <span>Sobrenome</span>
-                        <input type="text" name="last_name" value="{{ request.user.last_name }}" maxlength="150">
+                        <input type="text"
+                               name="last_name"
+                               value="{{ request.user.last_name }}"
+                               maxlength="150">
                     </label>
 
                     <label class="settings-field">
                         <span>E-mail</span>
-                        <input type="text" name="email" value="{{ request.user.email }}" placeholder="Ex.: exemplo@email.com">
+                        <input type="email"
+                               name="email"
+                               value="{{ request.user.email }}"
+                               placeholder="Ex.: exemplo@email.com">
                     </label>
 
                     <label class="settings-field">
                         <span>Telefone/Ramal</span>
-                        <input type="text" name="telefone" 
-                        value="{{ request.user.profile.telefone }}" maxlength="20" placeholder="Ex.: 525 ou (45) 0000-0000" id="phone">
+                        <input type="text"
+                               id="phone"
+                               name="telefone"
+                               value="{{ request.user.profile.telefone }}"
+                               maxlength="20"
+                               placeholder="Ex.: 525 ou (45) 0000-0000">
                     </label>
 
                     <label class="settings-field">
                         <span>Cargo</span>
-                        <input type="text" name="cargo" 
-                        value="{% if request.user.profile.cargo %}{{ request.user.profile.cargo }}{% endif %}" 
-                        maxlength="100" placeholder="Ex.: Analista de Infraestrutura de TI">
+                        <input type="text"
+                               name="cargo"
+                               value="{% if request.user.profile.cargo %}{{ request.user.profile.cargo }}{% endif %}"
+                               maxlength="100"
+                               placeholder="Ex.: Analista de Infraestrutura de TI">
                     </label>
 
                     <label class="settings-field">
                         <span>Departamento</span>
-                        <input type="text" name="departamento" value="{{ request.user.profile.departamento }}" maxlength="100" placeholder="Ex.: Tecnologia da Informacao">
+                        <input type="text"
+                               name="departamento"
+                               value="{{ request.user.profile.departamento }}"
+                               maxlength="100"
+                               placeholder="Ex.: Tecnologia da Informacao">
                     </label>
 
                     {% if request.user.profile.is_support %}
                     <label class="settings-field">
                         <span>Atualizacao dos chamados (segundos)</span>
-                        <input type="number" name="ticket_auto_refresh_seconds" value="{{ request.user.profile.ticket_auto_refresh_seconds }}" min="10" max="300" step="5">
+
+                        <input type="number"
+                               name="ticket_auto_refresh_seconds"
+                               value="{{ request.user.profile.ticket_auto_refresh_seconds }}"
+                               min="10"
+                               max="300"
+                               step="5">
                     </label>
                     {% endif %}
+
                 </div>
 
                 <div class="settings-actions">
@@ -105,22 +150,29 @@
                         Salvar perfil
                     </button>
                 </div>
+
             </form>
+
         </article>
 
+        <!-- DASHBOARD -->
         {% if request.user.profile.is_support %}
         <article class="settings-card tab-panel dashboard-panel">
 
             <div class="settings-card-header">
+
                 <div>
                     <h2>Dashboard</h2>
                     <p>Escolha quais indicadores deseja visualizar no painel inicial.</p>
                 </div>
 
                 <i class="fas fa-chart-pie"></i>
+
             </div>
 
-            <form method="post" action="{% url 'update_dashboard' %}" class="settings-form">
+            <form method="post"
+                  action="{% url 'update_dashboard' %}"
+                  class="settings-form">
 
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update_dashboard">
@@ -128,27 +180,35 @@
                 <div class="dashboard-settings">
 
                     <div class="toggle-card">
+
                         <div class="toggle-content">
-                            <h3>Inidicadores</h3>
-                            <p>Mostra a quantidade de chamados abertos, em andamento, aguardando e criticos</p>
+                            <h3>Indicadores</h3>
+                            <p>Mostra quantidade de chamados abertos, em andamento, aguardando e criticos.</p>
                         </div>
 
                         <label class="switch">
-                            <input type="checkbox" name="indicators" {% if preferences.indicators %} checked {% endif %}>
+                            <input type="checkbox"
+                                   name="indicators"
+                                   {% if preferences.indicators %}checked{% endif %}>
                             <span class="slider"></span>
                         </label>
+
                     </div>
 
                     <div class="toggle-card">
+
                         <div class="toggle-content">
                             <h3>Fila de Atendimento</h3>
-                            <p>Exibe tickets que estão sendo atendidos.</p>
+                            <p>Exibe os chamados em atendimento.</p>
                         </div>
 
                         <label class="switch">
-                            <input type="checkbox" name="service_queue" {% if preferences.service_queue %} checked {% endif %}>
+                            <input type="checkbox"
+                                   name="service_queue"
+                                   {% if preferences.service_queue %}checked{% endif %}>
                             <span class="slider"></span>
                         </label>
+
                     </div>
 
                 </div>
@@ -165,30 +225,47 @@
         </article>
         {% endif %}
 
+        <!-- NOTIFICAÇÕES -->
         {% if request.user.is_superuser %}
         <article class="settings-card tab-panel notifications-panel">
+
             <div class="settings-card-header">
+
                 <div>
                     <h2>Enviar notificacao global</h2>
                     <p>A mensagem sera entregue para todos os usuarios ativos.</p>
                 </div>
+
                 <i class="fas fa-paper-plane"></i>
+
             </div>
 
             <form method="post" class="settings-form">
+
                 {% csrf_token %}
                 <input type="hidden" name="action" value="send_global_notification">
 
                 <div class="settings-grid single">
+
                     <label class="settings-field">
                         <span>Titulo</span>
-                        <input type="text" name="title" maxlength="150" required placeholder="Ex.: Manutencao programada">
+
+                        <input type="text"
+                               name="title"
+                               maxlength="150"
+                               required
+                               placeholder="Ex.: Manutencao programada">
                     </label>
 
                     <label class="settings-field">
                         <span>Mensagem</span>
-                        <textarea name="description" rows="7" required placeholder="Escreva a notificacao para todos os usuarios."></textarea>
+
+                        <textarea name="description"
+                                  rows="7"
+                                  required
+                                  placeholder="Escreva a notificacao para todos os usuarios."></textarea>
                     </label>
+
                 </div>
 
                 <div class="settings-actions">
@@ -197,73 +274,110 @@
                         Enviar para todos
                     </button>
                 </div>
+
             </form>
+
         </article>
         {% endif %}
+
     </section>
 
 
 <script>
-    const phoneInput = document.getElementById('phone');
 
-    function formatPhone(value) {
+document.addEventListener("DOMContentLoaded", () => {
 
-        // Remove tudo que não for número
-        value = value.replace(/\D/g, '');
+    // ========= SLIDING NAV =========
 
-        // =========================
-        // RAMAL (até 3 dígitos)
-        // =========================
-        if (value.length <= 3) {
-            return value;
-        }
+    const slider = document.querySelector(".nav-slider");
+    const radios = document.querySelectorAll('input[name="settings_tab"]');
 
-        // =========================
-        // TELEFONE
-        // =========================
+    function moveSlider() {
 
-        // Remove 55 caso usuário digite manualmente
-        if (value.startsWith('55')) {
-            value = value.substring(2);
-        }
+        const active = document.querySelector(
+            'input[name="settings_tab"]:checked'
+        );
 
-        // Limite:
-        // DDD (2) + 9 dígitos = 11
-        value = value.substring(0, 11);
+        if (!active) return;
 
-        let formatted = '+55 ';
+        const label = document.querySelector(
+            `label[for="${active.id}"]`
+        );
 
-        // DDD
-        if (value.length >= 1) {
-            formatted += '(' + value.substring(0, 2);
-        }
+        if (!label) return;
 
-        if (value.length >= 3) {
-            formatted += ') ';
-        }
-
-        // Número
-        if (value.length >= 3) {
-
-            // Celular com 9 dígitos
-            if (value.length >= 7) {
-                formatted += value.substring(2, 7);
-            } else {
-                formatted += value.substring(2);
-            }
-
-            // Final
-            if (value.length >= 8) {
-                formatted += '-' + value.substring(7, 11);
-            }
-        }
-
-        return formatted;
+        slider.style.width = label.offsetWidth + "px";
+        slider.style.left = label.offsetLeft + "px";
     }
 
-    phoneInput.addEventListener('input', function(e) {
-        e.target.value = formatPhone(e.target.value);
+    radios.forEach(radio => {
+        radio.addEventListener("change", moveSlider);
     });
+
+    window.addEventListener("resize", moveSlider);
+
+    moveSlider();
+
+
+    // ========= TELEFONE =========
+
+    const phoneInput = document.getElementById("phone");
+
+    if (phoneInput) {
+
+        function formatPhone(value) {
+
+            value = value.replace(/\D/g, '');
+
+            if (value.length <= 3) {
+                return value;
+            }
+
+            if (value.startsWith('55')) {
+                value = value.substring(2);
+            }
+
+            value = value.substring(0, 11);
+
+            let formatted = '+55 ';
+
+            if (value.length >= 1) {
+                formatted += '(' + value.substring(0, 2);
+            }
+
+            if (value.length >= 3) {
+                formatted += ') ';
+            }
+
+            if (value.length >= 3) {
+
+                if (value.length >= 7) {
+                    formatted += value.substring(2, 7);
+                }
+                else {
+                    formatted += value.substring(2);
+                }
+
+                if (value.length >= 8) {
+                    formatted += '-' + value.substring(7, 11);
+                }
+
+            }
+
+            return formatted;
+        }
+
+        phoneInput.addEventListener("input", function (e) {
+            e.target.value = formatPhone(e.target.value);
+        });
+
+    }
+
+});
+
 </script>
+
 </body>
+
 {% endblock %}
+

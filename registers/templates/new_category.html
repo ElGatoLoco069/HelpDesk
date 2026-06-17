@@ -310,191 +310,253 @@
         </div>
     </div>
 
-    <script>
-        let selectedCategory = null;
-        
-        function openDeleteModal(button) {
-            const modalElement = document.getElementById("deleteModal");
-            const modal = new bootstrap.Modal(modalElement);
-            const form = button.closest("form");
-            const confirmBtn = document.getElementById("confirmDelete");
-            const itemName = button.closest(".item").querySelector(".item-title").innerText;
+<script>
+    let selectedCategory = null;
 
-            document.getElementById("deleteMessage").innerText =
-                `Deseja realmente deletar "${itemName}"?`;
+    function animateItems() {
+        document.querySelectorAll("#subcategoryList .item").forEach((item, index) => {
+            item.style.opacity = "0";
+            item.style.animation = "none";
 
-            confirmBtn.onclick = null;
-            confirmBtn.onclick = function () {
-                window.AppLoading?.setButton(confirmBtn, "Deletando...");
-                window.AppLoading?.show("Removendo registro...");
-                form.submit();
-            };
+            requestAnimationFrame(() => {
+                item.style.animation = `fadeUp .4s ease forwards`;
+                item.style.animationDelay = `${index * 0.06}s`;
+            });
+        });
+    }
 
-            modal.show();
-        }
-    
-        function openEditModal(button) {
-            const modalElement = document.getElementById("editModal");
-            const modal = new bootstrap.Modal(modalElement);
-            const item = button.closest(".item");
-            const categoryName = item.querySelector(".item-title").innerText;
-            const categoryId = item.querySelector("form input[name='category_id']").value;
+    function openDeleteModal(button) {
+        const modalElement = document.getElementById("deleteModal");
+        const modal = new bootstrap.Modal(modalElement);
+        const form = button.closest("form");
+        const confirmBtn = document.getElementById("confirmDelete");
+        const itemName = button.closest(".item").querySelector(".item-title").innerText;
 
-            document.getElementById("editCategoryName").value = categoryName;
-            document.getElementById("editCategoryId").value = categoryId;
+        document.getElementById("deleteMessage").innerText =
+            `Deseja realmente deletar "${itemName}"?`;
 
-            modal.show();
-        }
+        confirmBtn.onclick = null;
+        confirmBtn.onclick = function () {
+            window.AppLoading?.setButton(confirmBtn, "Deletando...");
+            window.AppLoading?.show("Removendo registro...");
+            form.submit();
+        };
 
-        function openSubcategoryConfigModal(subcategory = null) {
-            const modalElement = document.getElementById("configSubcategory");
-            const modal = new bootstrap.Modal(modalElement);
-            const subcategoryName = document.getElementById("subcategoryName").value.trim();
-            const saveButton = document.getElementById("saveSubcategoryConfig");
-            const message = document.getElementById("subcategoryConfigMessage");
-            const title = document.getElementById("subcategoryModalTitle");
-            const form = document.getElementById("subcategoryConfigForm");
+        modal.show();
+    }
 
-            form.reset();
+    function openEditModal(button) {
+        const modalElement = document.getElementById("editModal");
+        const modal = new bootstrap.Modal(modalElement);
 
-            if (subcategory) {
-                title.innerText = "Editar subcategoria";
-                document.getElementById("subcategoryAction").value = "update_subcategory";
-                document.getElementById("subcategoryId").value = subcategory.id;
-                document.getElementById("subcategoryModalName").value = subcategory.name;
-                document.getElementById("subcategoryPriority").value = subcategory.priorityId;
-                document.getElementById("subcategoryAssignmentMethod").value = subcategory.assignmentMethodId;
-            } else {
-                title.innerText = "Configurar subcategoria";
-                document.getElementById("subcategoryAction").value = "create_subcategory";
-                document.getElementById("subcategoryId").value = "";
-                document.getElementById("subcategoryModalName").value = subcategoryName;
-            }
+        const item = button.closest(".item");
+        const categoryName = item.querySelector(".item-title").innerText;
+        const categoryId = item.querySelector("form input[name='category_id']").value;
 
-            if (selectedCategory) {
-                document.getElementById("subcategoryCategoryId").value = selectedCategory.id;
-                document.getElementById("subcategoryCategoryName").value = selectedCategory.name;
-                message.innerText = "Defina as regras da subcategoria selecionada";
-                saveButton.disabled = false;
-            } else {
-                document.getElementById("subcategoryCategoryId").value = "";
-                document.getElementById("subcategoryCategoryName").value = "";
-                message.innerText = "Selecione uma categoria antes de configurar a subcategoria";
-                saveButton.disabled = true;
-            }
+        document.getElementById("editCategoryName").value = categoryName;
+        document.getElementById("editCategoryId").value = categoryId;
 
-            modal.show();
-        }
+        modal.show();
+    }
 
-        function openSubcategoryEditModal(button) {
-            const item = button.closest(".item");
-            const subcategory = {
-                id: item.dataset.subcategoryId,
-                name: item.dataset.subcategoryName,
-                priorityId: item.dataset.priorityId,
-                assignmentMethodId: item.dataset.assignmentMethodId,
-                firstInteractionLimit: item.dataset.firstInteractionLimit,
-                estimatedServiceTime: item.dataset.estimatedServiceTime
-            };
+    function openSubcategoryConfigModal(subcategory = null) {
+        const modalElement = document.getElementById("configSubcategory");
+        const modal = new bootstrap.Modal(modalElement);
 
-            openSubcategoryConfigModal(subcategory);
+        const subcategoryName = document.getElementById("subcategoryName").value.trim();
+        const saveButton = document.getElementById("saveSubcategoryConfig");
+        const message = document.getElementById("subcategoryConfigMessage");
+        const title = document.getElementById("subcategoryModalTitle");
+        const form = document.getElementById("subcategoryConfigForm");
+
+        form.reset();
+
+        if (subcategory) {
+            title.innerText = "Editar subcategoria";
+
+            document.getElementById("subcategoryAction").value = "update_subcategory";
+            document.getElementById("subcategoryId").value = subcategory.id;
+            document.getElementById("subcategoryModalName").value = subcategory.name;
+            document.getElementById("subcategoryPriority").value = subcategory.priorityId;
+            document.getElementById("subcategoryAssignmentMethod").value = subcategory.assignmentMethodId;
+
+        } else {
+
+            title.innerText = "Configurar subcategoria";
+
+            document.getElementById("subcategoryAction").value = "create_subcategory";
+            document.getElementById("subcategoryId").value = "";
+            document.getElementById("subcategoryModalName").value = subcategoryName;
         }
 
-        function escapeHtml(value) {
-            return String(value)
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;")
-                .replaceAll("'", "&#039;");
+        if (selectedCategory) {
+
+            document.getElementById("subcategoryCategoryId").value = selectedCategory.id;
+            document.getElementById("subcategoryCategoryName").value = selectedCategory.name;
+
+            message.innerText = "Defina as regras da subcategoria selecionada";
+            saveButton.disabled = false;
+
+        } else {
+
+            document.getElementById("subcategoryCategoryId").value = "";
+            document.getElementById("subcategoryCategoryName").value = "";
+
+            message.innerText = "Selecione uma categoria antes de configurar a subcategoria";
+
+            saveButton.disabled = true;
         }
 
-        function loadSubcategories(categoryId, button) {
-            const categoryItem = button.closest(".item");
-            const container = document.getElementById("subcategoryList");
-            selectedCategory = {
-                id: categoryId,
-                name: categoryItem.querySelector(".item-title").innerText
-            };
+        modal.show();
+    }
 
-            document.getElementById("subcategoryContext").innerText = selectedCategory.name;
-            button.setAttribute("aria-busy", "true");
-            button.disabled = true;
-            container.classList.add("is-loading");
+    function openSubcategoryEditModal(button) {
+        const item = button.closest(".item");
 
-            fetch(`/subcategories/${categoryId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    container.innerHTML = "";
+        const subcategory = {
+            id: item.dataset.subcategoryId,
+            name: item.dataset.subcategoryName,
+            priorityId: item.dataset.priorityId,
+            assignmentMethodId: item.dataset.assignmentMethodId,
+            firstInteractionLimit: item.dataset.firstInteractionLimit,
+            estimatedServiceTime: item.dataset.estimatedServiceTime
+        };
 
-                    if (data.length === 0) {
-                        container.innerHTML = `
-                            <div class="empty-state">
-                                <i class="fas fa-layer-group"></i>
-                                <strong>Nenhuma subcategoria encontrada</strong>
-                                <span>Crie uma subcategoria para "${escapeHtml(selectedCategory.name)}".</span>
-                            </div>
-                        `;
-                        return;
-                    }
+        openSubcategoryConfigModal(subcategory);
+    }
 
-                    data.forEach(sub => {
-                        container.innerHTML += `
-                            <div
-                                class="item"
-                                data-subcategory-id="${sub.id}"
-                                data-subcategory-name="${escapeHtml(sub.name)}"
-                                data-priority-id="${sub.priority_id}"
-                                data-assignment-method-id="${sub.assignment_method_id}"
-                                data-first-interaction-limit="${sub.first_interaction_limit}"
-                                data-estimated-service-time="${sub.estimated_service_time}">
-                                <div class="item-main">
-                                    <span class="item-title">${escapeHtml(sub.name)}</span>
-                                    <small>Subcategoria de ${escapeHtml(selectedCategory.name)}</small>
-                                </div>
-                                <div class="btn-grid">
-                                    <button
-                                        class="action-btn edit"
-                                        type="button"
-                                        title="Editar subcategoria"
-                                        onclick="openSubcategoryEditModal(this)">
-                                        <i class="fas fa-pen"></i>
-                                    </button>
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
 
-                                    <form class="delete-form" action="{% url 'categories' %}" method="post">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="delete_subcategory">
-                                        <input type="hidden" name="subcategory_id" value="${sub.id}">
+    function loadSubcategories(categoryId, button) {
 
-                                        <button
-                                            class="action-btn trash"
-                                            type="button"
-                                            title="Excluir subcategoria"
-                                            onclick="openDeleteModal(this)">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        `;
-                    });
-                })
-                .catch(() => {
+        const categoryItem = button.closest(".item");
+        const container = document.getElementById("subcategoryList");
+
+        selectedCategory = {
+            id: categoryId,
+            name: categoryItem.querySelector(".item-title").innerText
+        };
+
+        document.getElementById("subcategoryContext").innerText = selectedCategory.name;
+
+        button.setAttribute("aria-busy", "true");
+        button.disabled = true;
+
+        container.classList.add("is-loading");
+
+        fetch(`/subcategories/${categoryId}/`)
+            .then(response => response.json())
+            .then(data => {
+
+                container.innerHTML = "";
+
+                if (data.length === 0) {
+
                     container.innerHTML = `
                         <div class="empty-state">
-                            <i class="fas fa-circle-exclamation"></i>
-                            <strong>Erro ao carregar subcategorias</strong>
-                            <span>Tente selecionar a categoria novamente.</span>
+                            <i class="fas fa-layer-group"></i>
+                            <strong>Nenhuma subcategoria encontrada</strong>
+                            <span>
+                                Crie uma subcategoria para "${escapeHtml(selectedCategory.name)}".
+                            </span>
                         </div>
                     `;
-                })
-                .finally(() => {
-                    container.classList.remove("is-loading");
-                    button.removeAttribute("aria-busy");
-                    button.disabled = false;
+
+                    return;
+                }
+
+                data.forEach(sub => {
+
+                    container.innerHTML += `
+                        <div
+                            class="item"
+                            data-subcategory-id="${sub.id}"
+                            data-subcategory-name="${escapeHtml(sub.name)}"
+                            data-priority-id="${sub.priority_id}"
+                            data-assignment-method-id="${sub.assignment_method_id}"
+                            data-first-interaction-limit="${sub.first_interaction_limit}"
+                            data-estimated-service-time="${sub.estimated_service_time}">
+
+                            <div class="item-main">
+                                <span class="item-title">
+                                    ${escapeHtml(sub.name)}
+                                </span>
+
+                                <small>
+                                    Subcategoria de ${escapeHtml(selectedCategory.name)}
+                                </small>
+                            </div>
+
+                            <div class="btn-grid">
+
+                                <button
+                                    class="action-btn edit"
+                                    type="button"
+                                    title="Editar subcategoria"
+                                    onclick="openSubcategoryEditModal(this)">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+
+                                <form class="delete-form"
+                                      action="{% url 'categories' %}"
+                                      method="post">
+
+                                    {% csrf_token %}
+
+                                    <input type="hidden"
+                                           name="action"
+                                           value="delete_subcategory">
+
+                                    <input type="hidden"
+                                           name="subcategory_id"
+                                           value="${sub.id}">
+
+                                    <button
+                                        class="action-btn trash"
+                                        type="button"
+                                        title="Excluir subcategoria"
+                                        onclick="openDeleteModal(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+                    `;
                 });
-        }
-    </script>
+
+                animateItems();
+            })
+
+            .catch(() => {
+
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-circle-exclamation"></i>
+                        <strong>Erro ao carregar subcategorias</strong>
+                        <span>Tente selecionar a categoria novamente.</span>
+                    </div>
+                `;
+            })
+
+            .finally(() => {
+
+                container.classList.remove("is-loading");
+
+                button.removeAttribute("aria-busy");
+                button.disabled = false;
+            });
+    }
+</script>
 </body>
 
 {% endblock %}

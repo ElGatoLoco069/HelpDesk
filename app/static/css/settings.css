@@ -1,3 +1,4 @@
+
 .settings-header {
     display: flex;
     align-items: flex-end;
@@ -33,6 +34,10 @@
     color: var(--text-light);
 }
 
+/* =========================
+   TABS
+========================= */
+
 .settings-tabs {
     display: grid;
     gap: 16px;
@@ -44,35 +49,79 @@
 }
 
 .tab-list {
+    position: relative;
     display: inline-flex;
-    width: fit-content;
     gap: 8px;
     padding: 6px;
     border-radius: 14px;
     background: var(--card-background);
+    isolation: isolate;
+}
+
+.nav-slider {
+    position: absolute;
+    top: 6px;
+    left: 0;
+
+    height: 42px;
+
+    border-radius: 10px;
+
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-hover)
+    );
+
+    box-shadow: 0 8px 25px rgba(37, 99, 235, .25);
+
+    transition:
+        left .35s cubic-bezier(.22, 1, .36, 1),
+        width .35s cubic-bezier(.22, 1, .36, 1);
+
+    z-index: 0;
 }
 
 .tab-list label {
+    position: relative;
+    z-index: 1;
+
     min-height: 42px;
-    display: inline-flex;
+
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 0 14px;
+
+    padding: 0 18px;
+
     border-radius: 10px;
+
+    cursor: pointer;
+
     color: var(--text-light);
+
     font-size: 14px;
     font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s ease;
+
+    transition:
+        color .25s ease,
+        transform .25s ease;
+}
+
+.tab-list label:hover {
+    transform: translateY(-2px);
 }
 
 #tab-profile:checked~.tab-list label[for="tab-profile"],
 #tab-dashboard:checked~.tab-list label[for="tab-dashboard"],
 #tab-notifications:checked~.tab-list label[for="tab-notifications"] {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: var(--white-color);
 }
+
+/* =========================
+   PANELS
+========================= */
 
 .tab-panel {
     display: none;
@@ -82,13 +131,40 @@
 #tab-dashboard:checked~.dashboard-panel,
 #tab-notifications:checked~.notifications-panel {
     display: block;
+    animation: tabFade .35s ease;
 }
+
+@keyframes tabFade {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   CARD
+========================= */
 
 .settings-card {
     max-width: 980px;
     padding: 20px;
+
     border-radius: 16px;
     background: var(--card-background);
+
+    transition:
+        transform .3s ease,
+        box-shadow .3s ease;
+}
+
+.settings-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
 }
 
 .settings-card-header {
@@ -117,6 +193,10 @@
     color: var(--primary-color);
 }
 
+/* =========================
+   FORM
+========================= */
+
 .settings-form,
 .settings-grid,
 .settings-field {
@@ -142,12 +222,18 @@
 .settings-field input,
 .settings-field textarea {
     width: 100%;
+
     border: 1px solid transparent;
     border-radius: 12px;
+
     outline: none;
+
     background: var(--input-background);
     color: var(--text-color);
-    transition: 0.2s ease;
+
+    transition:
+        border-color .25s ease,
+        box-shadow .25s ease;
 }
 
 .settings-field input {
@@ -164,8 +250,12 @@
 .settings-field input:focus,
 .settings-field textarea:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.16);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, .16);
 }
+
+/* =========================
+   BUTTONS
+========================= */
 
 .settings-actions {
     display: flex;
@@ -174,28 +264,44 @@
 
 .btn-primary {
     min-height: 42px;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+
     padding: 0 15px;
+
     border: none;
     border-radius: 10px;
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+
+    background: linear-gradient(
+        135deg,
+        #3b82f6,
+        #2563eb
+    );
+
     color: #fff;
+
     font-size: 14px;
     font-weight: 600;
+
     cursor: pointer;
-    transition: 0.2s ease;
+
+    transition:
+        transform .25s ease,
+        box-shadow .3s ease;
 }
 
 .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.18);
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 25px rgba(37, 99, 235, .3);
 }
 
 /* =========================
-   DASHBOARD SETTINGS
+   DASHBOARD
 ========================= */
 
 .dashboard-settings {
@@ -208,15 +314,23 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+
     padding: 16px;
+
     border-radius: 14px;
+
     background: var(--input-background);
-    transition: 0.2s ease;
+
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease;
 }
 
 .toggle-card:hover {
-    transform: translateY(-1px);
-    background: rgba(255, 255, 255, 0.03);
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 10px 20px rgba(0, 0, 0, .08);
 }
 
 .toggle-content {
@@ -237,7 +351,9 @@
     font-size: 13px;
 }
 
-/* Toggle */
+/* =========================
+   SWITCH
+========================= */
 
 .switch {
     position: relative;
@@ -255,28 +371,40 @@
 .slider {
     position: absolute;
     inset: 0;
+
     cursor: pointer;
+
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.12);
-    transition: 0.25s ease;
+
+    background: rgba(255, 255, 255, .12);
+
+    transition: .25s ease;
 }
 
 .slider::before {
     content: "";
+
     position: absolute;
+
     width: 22px;
     height: 22px;
+
     left: 4px;
     top: 4px;
+
     border-radius: 50%;
+
     background: white;
-    transition: 0.25s ease;
+
+    transition: .25s ease;
 }
 
 .switch input:checked+.slider {
-    background: linear-gradient(135deg,
-            var(--primary-color),
-            var(--primary-hover));
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-hover)
+    );
 }
 
 .switch input:checked+.slider::before {
@@ -284,15 +412,23 @@
 }
 
 .switch input:focus+.slider {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .18);
 }
+
+/* =========================
+   RESPONSIVO
+========================= */
 
 @media (max-width: 768px) {
 
     .settings-header,
     .settings-card-header {
-        align-items: stretch;
         flex-direction: column;
+        align-items: stretch;
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr;
     }
 
     .tab-list {
@@ -303,11 +439,12 @@
         flex: 1;
     }
 
-    .settings-grid {
-        grid-template-columns: 1fr;
+    .nav-slider {
+        display: none;
     }
 
     .settings-actions .btn-primary {
         width: 100%;
     }
+
 }

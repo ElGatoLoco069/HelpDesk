@@ -54,6 +54,7 @@ def get_solution_status():
 def get_done_status():
     return get_status_by_name(STATUS_CONCLUIDO, "concluído")
 
+
 @method_decorator(login_required(login_url="/"), name="dispatch")
 class TicketView(View):
     

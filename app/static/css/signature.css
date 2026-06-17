@@ -219,6 +219,247 @@ label {
 }
 
 /* ==========================
+   ANIMAÇÕES
+========================== */
+
+@keyframes fadeLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px) scale(.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes zoomIn {
+    from {
+        opacity: 0;
+        transform: scale(.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulseDownload {
+    0%,100%{
+        transform: scale(1);
+    }
+    50%{
+        transform: scale(1.03);
+    }
+}
+
+/* ==========================
+   ENTRADA DA PÁGINA
+========================== */
+
+.form-panel{
+    animation: fadeLeft .7s ease forwards;
+}
+
+.preview-panel{
+    animation: fadeRight .8s ease .15s forwards;
+    opacity: 0;
+}
+
+/* ==========================
+   FORMULÁRIO EM CASCATA
+========================== */
+
+.form-group{
+    opacity: 0;
+    animation: fadeUp .6s ease forwards;
+}
+
+.form-group:nth-child(1){animation-delay: .1s;}
+.form-group:nth-child(2){animation-delay: .2s;}
+.form-group:nth-child(3){animation-delay: .3s;}
+.form-group:nth-child(4){animation-delay: .4s;}
+.form-group:nth-child(5){animation-delay: .5s;}
+
+.button-signature{
+    opacity: 0;
+    animation:
+        fadeUp .6s ease .65s forwards,
+        pulseDownload 3s ease-in-out 2s infinite;
+}
+
+/* ==========================
+   CARTÃO DA ASSINATURA
+========================== */
+
+.signature-preview{
+    animation: zoomIn .8s ease .3s both;
+}
+
+#signature{
+    transition: .4s ease;
+    transform-origin: center;
+}
+
+#signature:hover{
+    transform: translateY(-5px);
+    box-shadow:
+        0 25px 60px rgba(6,23,107,.15);
+}
+
+/* ==========================
+   LOGO
+========================== */
+
+.left img{
+    animation: zoomIn 1s ease .6s both;
+    transition: .4s;
+}
+
+.left img:hover{
+    transform: scale(1.03);
+}
+
+/* ==========================
+   DIVISÓRIA
+========================== */
+
+.divider{
+    position: relative;
+    overflow: hidden;
+}
+
+.divider::after{
+    content: "";
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,.5);
+
+    animation: shineDivider 4s linear infinite;
+}
+
+@keyframes shineDivider{
+    from{
+        top: -100%;
+    }
+    to{
+        top: 100%;
+    }
+}
+
+/* ==========================
+   TÍTULOS
+========================== */
+
+.right h1,
+.right h2,
+.right p,
+.line,
+.contact-row,
+.contact{
+    opacity: 0;
+    animation: fadeUp .7s ease forwards;
+}
+
+.right h1{animation-delay: .5s;}
+.right h2{animation-delay: .65s;}
+.right p{animation-delay: .8s;}
+.line{animation-delay: .95s;}
+.contact-row{animation-delay: 1.1s;}
+.contact:nth-of-type(1){animation-delay: 1.25s;}
+.contact:nth-of-type(2){animation-delay: 1.4s;}
+
+/* ==========================
+   CAMPOS
+========================== */
+
+.input-signature{
+    transition:
+        .3s ease,
+        transform .2s ease;
+}
+
+.input-signature:hover{
+    transform: translateY(-2px);
+}
+
+.input-signature:focus{
+    transform: translateY(-2px);
+}
+
+/* ==========================
+   BOTÃO
+========================== */
+
+.button-signature{
+    position: relative;
+    overflow: hidden;
+}
+
+.button-signature::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,.35),
+        transparent
+    );
+    transform: translateX(-100%);
+    transition: .8s;
+}
+
+.button-signature:hover::before{
+    transform: translateX(100%);
+}
+
+.button-signature:hover{
+    transform: translateY(-3px);
+}
+
+/* ==========================
+   REDUZIR ANIMAÇÕES
+========================== */
+
+@media (prefers-reduced-motion: reduce){
+
+    *,
+    *::before,
+    *::after{
+        animation: none !important;
+        transition: none !important;
+    }
+
+}
+
+
+/* ==========================
    RESPONSIVO
 ========================== */
 

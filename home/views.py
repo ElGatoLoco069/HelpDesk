@@ -72,7 +72,7 @@ class HomeView(View):
         waiting_status = next(
             (
                 item for item in status
-                if item.name.lower() == "aguardando"
+                if item.name.lower() == "Aguardando Fornecedor" or item.name.lower() == "Açao do Cliente"
             ),
             None
         )

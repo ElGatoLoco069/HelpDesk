@@ -94,6 +94,28 @@
 
                     </li>
 
+                    {% if request.user.is_superuser %}
+                    <li class="menu-item has-dropdown {% if 'system' in request.path %}active{% endif %}">
+
+                        <a href="#" class="menu-link dropdown-toggle" title="Expandir menu de cadastros">
+                            <i class="fas fa-screwdriver-wrench"></i>
+                            <span class="menu-label">Sistema</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+
+                        <ul class="submenu">
+                            <li>
+                                <a href="{% url 'maintenance_center' %}" class="submenu-link {% if active_page == 'maintenance_center' %}active{% endif %}" 
+                                title="Acessar central de Manutenção">
+                                    <i class="fas fa-person-digging"></i>
+                                    <span>Manutenção</span>
+                                </a>
+                            </li>
+                        </ul>
+
+                    </li>
+                    {% endif %}
+
                     <li class="menu-item">
                         <a href="{% url 'settings' %}" class="menu-link {% if active_page == 'config' %}active{% endif %}"
                         title="Acessar Configurações do sistema">

@@ -1400,6 +1400,256 @@ textarea.modal_input {
     backdrop-filter: blur(3px);
 }
 
+/* ======================================
+   ANIMAÇÕES GERAIS
+====================================== */
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeRight {
+    from {
+        opacity: 0;
+        transform: translateX(25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(.92);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ======================================
+   CABEÇALHO
+====================================== */
+
+.ticket-detail-header{
+    animation: fadeUp .5s ease;
+}
+
+/* ======================================
+   CARDS DO RESUMO
+====================================== */
+
+.summary-card{
+    animation: scaleIn .45s ease backwards;
+    transition: .25s;
+}
+
+.summary-card:nth-child(1){
+    animation-delay: .05s;
+}
+
+.summary-card:nth-child(2){
+    animation-delay: .15s;
+}
+
+.summary-card:nth-child(3){
+    animation-delay: .25s;
+}
+
+.summary-card:nth-child(4){
+    animation-delay: .35s;
+}
+
+.summary-card:hover{
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,.08);
+}
+
+/* ======================================
+   CARDS PRINCIPAIS
+====================================== */
+
+.detail-card{
+    animation: fadeUp .6s ease backwards;
+}
+
+.detail-layout .detail-card:nth-child(1){
+    animation-delay: .15s;
+}
+
+.detail-layout .detail-card:nth-child(2){
+    animation-delay: .3s;
+}
+
+/* ======================================
+   TIMELINE
+====================================== */
+
+.interaction-item{
+    animation: fadeLeft .5s ease backwards;
+}
+
+.interaction-item:nth-child(1){ animation-delay:.1s; }
+.interaction-item:nth-child(2){ animation-delay:.15s; }
+.interaction-item:nth-child(3){ animation-delay:.2s; }
+.interaction-item:nth-child(4){ animation-delay:.25s; }
+.interaction-item:nth-child(5){ animation-delay:.3s; }
+.interaction-item:nth-child(6){ animation-delay:.35s; }
+
+.interaction-content{
+    transition:
+        .25s ease,
+        box-shadow .25s ease;
+}
+
+.interaction-content:hover{
+    transform: translateY(-3px);
+    box-shadow:
+        0 10px 30px rgba(59,130,246,.08);
+}
+
+/* ======================================
+   AVATARES
+====================================== */
+
+.interaction-avatar,
+.avatar{
+    transition: .3s;
+}
+
+.interaction-item:hover .interaction-avatar,
+.person-card:hover .avatar{
+    transform: scale(1.08) rotate(-6deg);
+}
+
+/* ======================================
+   ANEXOS
+====================================== */
+
+.attachment-item{
+    transition:
+        .25s ease,
+        box-shadow .25s ease;
+}
+
+.attachment-item:hover{
+    transform: translateX(5px);
+    box-shadow:
+        0 10px 20px rgba(59,130,246,.08);
+}
+
+/* ======================================
+   BOTÕES
+====================================== */
+
+.btn-primary,
+.btn-ghost{
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before,
+.btn-ghost::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,.25),
+        transparent
+    );
+
+    transform: translateX(-100%);
+    transition: .7s;
+}
+
+.btn-primary:hover::before,
+.btn-ghost:hover::before{
+    transform: translateX(100%);
+}
+
+/* ======================================
+   FORMULÁRIO
+====================================== */
+
+.interaction-form{
+    animation: fadeUp .7s ease;
+}
+
+.edit-field textarea,
+.modal_input{
+    transition:
+        .25s ease,
+        box-shadow .25s ease;
+}
+
+.edit-field textarea:focus,
+.modal_input:focus{
+    transform: translateY(-2px);
+}
+
+/* ======================================
+   RELATÓRIOS
+====================================== */
+
+.report-item{
+    transition:
+        .25s ease,
+        box-shadow .25s ease;
+}
+
+.report-item:hover{
+    transform: translateY(-3px);
+    box-shadow:
+        0 12px 28px rgba(0,0,0,.08);
+}
+
+/* ======================================
+   SCROLL SUAVE
+====================================== */
+
+html{
+    scroll-behavior: smooth;
+}
+
+.original-ticket-message,
+.interaction-item{
+    opacity: 0;
+    animation: messageAppear .5s ease forwards;
+}
+
+@keyframes messageAppear{
+    from{
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to{
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
 @media (max-width: 1180px) {
     .detail-summary {

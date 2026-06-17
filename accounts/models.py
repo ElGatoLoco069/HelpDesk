@@ -12,6 +12,8 @@ class Profile(models.Model):
     is_support = models.BooleanField(default=False)
     ticket_auto_refresh_seconds = models.PositiveSmallIntegerField(default=30)
 
+    last_activity = models.DateTimeField(null=True, blank=True)
+    
     def __str__(self):
         return self.user.username
 
@@ -25,10 +27,3 @@ class UserPreferences(models.Model):
     def __str__(self):
         return f"Preferências de {self.user.username}"
     
-
-
-class System(models.Model):
-    under_maintenance = models.BooleanField(
-        verbose_name="Em manutenção",
-        default=False
-    )

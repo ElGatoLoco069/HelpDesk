@@ -525,6 +525,326 @@ select:focus {
     color: var(--text-color);
 }
 
+.ticket-list-body {
+    display: grid;
+    gap: 10px;
+    transition: opacity .25s ease;
+}
+
+/* =========================
+   CARD DO CHAMADO
+========================= */
+
+.ticket-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(260px, 1.6fr) minmax(180px, 0.9fr) 160px auto;
+    align-items: center;
+    gap: 16px;
+    padding: 15px 16px;
+    border-radius: 14px;
+    background: var(--item-background);
+    overflow: hidden;
+
+    opacity: 0;
+    animation: ticketAppear .5s ease forwards;
+
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease,
+        background .25s ease;
+}
+
+/* Entrada em cascata */
+.ticket-item:nth-child(1) { animation-delay: .05s; }
+.ticket-item:nth-child(2) { animation-delay: .10s; }
+.ticket-item:nth-child(3) { animation-delay: .15s; }
+.ticket-item:nth-child(4) { animation-delay: .20s; }
+.ticket-item:nth-child(5) { animation-delay: .25s; }
+.ticket-item:nth-child(6) { animation-delay: .30s; }
+.ticket-item:nth-child(7) { animation-delay: .35s; }
+.ticket-item:nth-child(8) { animation-delay: .40s; }
+.ticket-item:nth-child(9) { animation-delay: .45s; }
+.ticket-item:nth-child(10) { animation-delay: .50s; }
+
+@keyframes ticketAppear {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* =========================
+   BARRA LATERAL
+========================= */
+
+.ticket-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 4px;
+    border-radius: 0 4px 4px 0;
+    transition: .3s;
+}
+
+.ticket-item.priority-low::before {
+    background: #22c55e;
+}
+
+.ticket-item.priority-medium::before {
+    background: #f59e0b;
+}
+
+.ticket-item.priority-high::before {
+    background: #ef4444;
+    animation: criticalPulse 2s infinite;
+}
+
+@keyframes criticalPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 rgba(239, 68, 68, 0);
+    }
+
+    50% {
+        box-shadow:
+            0 0 10px rgba(239, 68, 68, .8),
+            0 0 20px rgba(239, 68, 68, .4);
+    }
+}
+
+/* =========================
+   HOVER DO CARD
+========================= */
+
+.ticket-item:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, .10);
+}
+
+.ticket-item:hover::before {
+    background: var(--primary-color);
+}
+
+
+/* =========================
+   BLOCO PRINCIPAL
+========================= */
+
+.ticket-main {
+    display: grid;
+    gap: 6px;
+}
+
+.ticket-id {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ticket-id strong {
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+.date,
+.ticket-meta,
+.ticket-details {
+    color: var(--text-light);
+    font-size: 12px;
+}
+
+.ticket-meta,
+.ticket-details {
+    display: flex;
+    gap: 8px;
+}
+
+.ticket-details {
+    flex-direction: column;
+}
+
+.ticket-meta i,
+.ticket-details i {
+    color: var(--text-light);
+}
+
+/* =========================
+   TITULO
+========================= */
+
+.ticket-title {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 15px;
+    font-weight: 700;
+    transition: .25s;
+}
+
+.ticket-item:hover .ticket-title {
+    color: var(--primary-color);
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.ticket-status {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* =========================
+   AÇÕES
+========================= */
+
+.ticket-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+
+    border: 1px solid rgba(148, 163, 184, .25);
+    background: rgba(148, 163, 184, .08);
+    color: #94a3b8;
+
+    transition:
+        transform .25s ease,
+        background .25s ease,
+        color .25s ease,
+        border-color .25s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-3px) scale(1.08);
+}
+
+.action-btn.view:hover {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, .10);
+    color: #3b82f6;
+}
+
+.action-btn.edit:hover {
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, .10);
+    color: #f59e0b;
+}
+
+.action-btn.chat:hover {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, .10);
+    color: #22c55e;
+}
+
+/* =========================
+   ESTADO VAZIO
+========================= */
+
+.empty-ticket-state {
+    display: grid;
+    place-items: center;
+    gap: 10px;
+    min-height: 180px;
+    padding: 24px;
+    border-radius: 14px;
+    background: var(--item-background);
+    color: var(--text-light);
+    text-align: center;
+
+    animation: ticketAppear .5s ease;
+}
+
+.empty-ticket-state i {
+    width: 50px;
+    height: 50px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: rgba(59, 130, 246, .12);
+    color: #2563eb;
+    font-size: 18px;
+}
+
+.empty-ticket-state strong {
+    color: var(--text-color);
+}
+
+/* =========================
+   RESPONSIVO
+========================= */
+
+@media (max-width:1180px) {
+
+    .ticket-item {
+        grid-template-columns: 1fr 180px;
+        grid-template-areas:
+            "main status"
+            "details actions";
+    }
+
+    .ticket-main {
+        grid-area: main;
+    }
+
+    .ticket-details {
+        grid-area: details;
+    }
+
+    .ticket-status {
+        grid-area: status;
+    }
+
+    .ticket-actions {
+        grid-area: actions;
+        justify-content: flex-end;
+    }
+
+}
+
+@media (max-width:768px) {
+
+    .ticket-item {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ticket-actions {
+        justify-content: space-between;
+    }
+
+}
 
 @media (max-width: 1180px) {
     .summary {

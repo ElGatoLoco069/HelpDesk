@@ -578,6 +578,249 @@ select:disabled {
     font-size: 12px;
 }
 
+/* ========================================
+   ANIMAÇÕES
+======================================== */
+
+/* Entrada do header */
+.page-header {
+    animation: fadeDown .6s ease;
+}
+
+/* Sidebar */
+.form-sidebar {
+    animation: slideLeft .7s ease;
+}
+
+/* Card principal */
+.form-card {
+    animation: slideRight .7s ease;
+}
+
+/* Campos entrando em cascata */
+.field {
+    opacity: 0;
+    transform: translateY(15px);
+    animation: fieldAppear .5s ease forwards;
+}
+
+.field:nth-child(1) { animation-delay: .1s; }
+.field:nth-child(2) { animation-delay: .15s; }
+.field:nth-child(3) { animation-delay: .2s; }
+.field:nth-child(4) { animation-delay: .25s; }
+.field:nth-child(5) { animation-delay: .3s; }
+.field:nth-child(6) { animation-delay: .35s; }
+
+/* Badge superior */
+.page-header-badge {
+    position: relative;
+    overflow: hidden;
+}
+
+.page-header-badge::after {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,.2),
+        transparent
+    );
+    transform: rotate(25deg);
+    animation: shine 5s linear infinite;
+}
+
+/* Sidebar ícone */
+.sidebar-icon {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Passo ativo */
+.step-pill.active {
+    position: relative;
+    overflow: hidden;
+}
+
+.step-pill.active::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(59,130,246,.2);
+    animation: pulseBorder 2.5s infinite;
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+    transition:
+        .25s ease,
+        transform .2s ease;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+    transform: translateY(-2px);
+}
+
+/* Upload */
+.file-upload-area {
+    position: relative;
+    overflow: hidden;
+}
+
+.file-upload-area::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(
+            120deg,
+            transparent,
+            rgba(59,130,246,.08),
+            transparent
+        );
+    transform: translateX(-100%);
+    transition: .8s;
+}
+
+.file-upload-area:hover::before {
+    transform: translateX(100%);
+}
+
+.file-upload.dragover .file-upload-area {
+    animation: uploadPulse 1s infinite;
+}
+
+/* Arquivos */
+.file-item {
+    animation: fileAppear .35s ease;
+}
+
+/* Botões */
+.btn-primary,
+.btn-ghost {
+    transition: .3s;
+}
+
+.btn-primary:hover,
+.btn-ghost:hover {
+    transform: translateY(-3px);
+}
+
+.btn-primary:active,
+.btn-ghost:active {
+    transform: scale(.96);
+}
+
+/* Preview */
+.ticket-preview {
+    transition: .3s;
+}
+
+.ticket-preview:hover {
+    transform: translateY(-4px);
+}
+
+/* ========================================
+   KEYFRAMES
+======================================== */
+
+@keyframes fadeDown {
+    from {
+        opacity:0;
+        transform:translateY(-20px);
+    }
+    to {
+        opacity:1;
+        transform:none;
+    }
+}
+
+@keyframes slideLeft {
+    from{
+        opacity:0;
+        transform:translateX(-40px);
+    }
+    to{
+        opacity:1;
+        transform:none;
+    }
+}
+
+@keyframes slideRight {
+    from{
+        opacity:0;
+        transform:translateX(40px);
+    }
+    to{
+        opacity:1;
+        transform:none;
+    }
+}
+
+@keyframes fieldAppear {
+    to{
+        opacity:1;
+        transform:none;
+    }
+}
+
+@keyframes shine {
+    0%{
+        transform: translateX(-300%) rotate(25deg);
+    }
+    100%{
+        transform: translateX(300%) rotate(25deg);
+    }
+}
+
+@keyframes float {
+    0%,100%{
+        transform: translateY(0);
+    }
+    50%{
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes pulseBorder {
+    0%{
+        opacity:1;
+        transform:scale(1);
+    }
+    70%{
+        opacity:0;
+        transform:scale(1.05);
+    }
+    100%{
+        opacity:0;
+    }
+}
+
+@keyframes uploadPulse {
+    0%,100%{
+        transform:scale(1);
+    }
+    50%{
+        transform:scale(1.015);
+    }
+}
+
+@keyframes fileAppear {
+    from{
+        opacity:0;
+        transform:translateY(15px);
+    }
+    to{
+        opacity:1;
+        transform:none;
+    }
+}
+
 @media (max-width: 1024px) {
     .form-sidebar {
         justify-content: space-between;
@@ -605,3 +848,4 @@ select:disabled {
         min-width: 0;
     }
 }
+

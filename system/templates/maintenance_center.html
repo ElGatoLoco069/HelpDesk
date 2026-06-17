@@ -1,0 +1,155 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<head>
+    <title>Central de Manutenção | Help Desk</title>
+    <link rel="stylesheet" href="{% static 'css/central_maitenance.css' %}">
+</head>
+
+<section class="central-header">
+
+    <div>
+        <span class="eyebrow">
+            <i class="fas fa-screwdriver-wrench"></i>
+            Central de Operações
+        </span>
+
+        <h1>Central de Manutenção do Sistema</h1>
+
+        <p class="header-description">
+            Gerencie manutenções programadas, monitore usuários conectados e acompanhe o status geral do ambiente.
+        </p>
+    </div>
+
+    <div class="status-card">
+
+        <span class="indicator on-line">
+            <i class="fas fa-circle"></i>
+            Sistema Operando Normalmente
+        </span>
+
+    </div>
+
+</section>
+
+<section class="summary">
+
+    <article class="summary-card success">
+
+        <div class="summary-icon">
+            <i class="fas fa-users"></i>
+        </div>
+
+        <div>
+            <span class="summary-label">Usuários Logados</span>
+            <strong class="value">{{online_users}}</strong>
+        </div>
+
+    </article>
+
+    <article class="summary-card warning">
+
+        <div class="summary-icon">
+            <i class="fas fa-ticket-alt"></i>
+        </div>
+
+        <div>
+            <span class="summary-label">Chamados Abertos</span>
+            <strong class="value">{{total_tickets}}</strong>
+        </div>
+
+    </article>
+
+    <article class="summary-card primary">
+
+        <div class="summary-icon">
+            <i class="fas fa-code-branch"></i>
+        </div>
+
+        <div>
+            <span class="summary-label">Versão Atual</span>
+            <strong class="value">v1.2.8</strong>
+        </div>
+
+    </article>
+
+</section>
+
+<section class="maintenance-grid">
+
+    <div class="card maintenance-card">
+
+        <div class="card-header">
+
+            <div>
+                <span class="card-subtitle">
+                    Próxima Janela
+                </span>
+
+                <h2>
+                    Atualização v2.4.0
+                </h2>
+            </div>
+
+            <span class="badgee scheduled">
+                Agendada
+            </span>
+
+        </div>
+
+        <p>
+            Correções de desempenho, melhorias de segurança,
+            otimização de notificações e ajustes gerais no sistema.
+        </p>
+
+        <div class="preview-grid">
+
+            <div class="preview-item">
+                <span>Início</span>
+                <strong>15/06/2026 11:40</strong>
+            </div>
+
+            <div class="preview-item">
+                <span>Término Previsto</span>
+                <strong>15/06/2026 13:40</strong>
+            </div>
+
+            <div class="preview-item">
+                <span>Tempo Restante</span>
+                <div class="countdown">
+                    01:53:22
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <aside class="card actions-card">
+
+        <h3>Ações Rápidas</h3>
+
+        <button class="action-btn primary">
+            <i class="fas fa-calendar-plus"></i>
+            Programar Manutenção
+        </button>
+
+        <button class="action-btn warning">
+            <i class="fas fa-user-slash"></i>
+            Deslogar Usuários
+        </button>
+
+        <button class="action-btn danger">
+            <i class="fas fa-power-off"></i>
+            Ativar Modo Manutenção
+        </button>
+
+    </aside>
+
+</section>
+
+{% endblock %}
+

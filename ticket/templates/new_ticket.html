@@ -147,8 +147,7 @@
                             Cancelar
                         </a>
                         <button type="submit" class="btn-primary" id="submitTicket"
-                            data-loading-label="Abrindo chamado..."
-                            title="Confirmar e enviar o chamado">
+                            data-loading-label="Abrindo chamado..." title="Confirmar e enviar o chamado">
                             <i class="fas fa-paper-plane"></i>
                             Confirmar
                         </button>
@@ -159,68 +158,96 @@
 
     </section>
 
-<script>
-    const phoneInput = document.getElementById('phone');
+    <script>
+        const phoneInput = document.getElementById('phone');
 
-    function formatPhone(value) {
+        function formatPhone(value) {
 
-        // Remove tudo que não for número
-        value = value.replace(/\D/g, '');
+            // Remove tudo que não for número
+            value = value.replace(/\D/g, '');
 
-        // =========================
-        // RAMAL (até 3 dígitos)
-        // =========================
-        if (value.length <= 3) {
-            return value;
-        }
-
-        // =========================
-        // TELEFONE
-        // =========================
-
-        // Remove 55 caso usuário digite manualmente
-        if (value.startsWith('55')) {
-            value = value.substring(2);
-        }
-
-        // Limite:
-        // DDD (2) + 9 dígitos = 11
-        value = value.substring(0, 11);
-
-        let formatted = '+55 ';
-
-        // DDD
-        if (value.length >= 1) {
-            formatted += '(' + value.substring(0, 2);
-        }
-
-        if (value.length >= 3) {
-            formatted += ') ';
-        }
-
-        // Número
-        if (value.length >= 3) {
-
-            // Celular com 9 dígitos
-            if (value.length >= 7) {
-                formatted += value.substring(2, 7);
-            } else {
-                formatted += value.substring(2);
+            // =========================
+            // RAMAL (até 3 dígitos)
+            // =========================
+            if (value.length <= 3) {
+                return value;
             }
 
-            // Final
-            if (value.length >= 8) {
-                formatted += '-' + value.substring(7, 11);
+            // =========================
+            // TELEFONE
+            // =========================
+
+            // Remove 55 caso usuário digite manualmente
+            if (value.startsWith('55')) {
+                value = value.substring(2);
             }
+
+            // Limite:
+            // DDD (2) + 9 dígitos = 11
+            value = value.substring(0, 11);
+
+            let formatted = '+55 ';
+
+            // DDD
+            if (value.length >= 1) {
+                formatted += '(' + value.substring(0, 2);
+            }
+
+            if (value.length >= 3) {
+                formatted += ') ';
+            }
+
+            // Número
+            if (value.length >= 3) {
+
+                // Celular com 9 dígitos
+                if (value.length >= 7) {
+                    formatted += value.substring(2, 7);
+                } else {
+                    formatted += value.substring(2);
+                }
+
+                // Final
+                if (value.length >= 8) {
+                    formatted += '-' + value.substring(7, 11);
+                }
+            }
+
+            return formatted;
         }
 
-        return formatted;
-    }
+        phoneInput.addEventListener('input', function (e) {
+            e.target.value = formatPhone(e.target.value);
+        });
 
-    phoneInput.addEventListener('input', function(e) {
-        e.target.value = formatPhone(e.target.value);
-    });
-</script>
+        window.addEventListener("load", () => {
+
+            const preview = document.querySelector(".ticket-preview");
+            const category = document.getElementById("category");
+            const description = document.getElementById("description");
+
+            function animatePreview() {
+                preview.animate([
+                    {
+                        transform: "scale(1)"
+                    },
+                    {
+                        transform: "scale(1.03)"
+                    },
+                    {
+                        transform: "scale(1)"
+                    }
+                ], {
+                    duration: 300,
+                    easing: "ease"
+                });
+            }
+
+            category.addEventListener("change", animatePreview);
+            description.addEventListener("input", animatePreview);
+
+        });
+    </script>
 
 </body>
 
