@@ -78,37 +78,3 @@
 </div>
 
 {% endfor %}
-
-<script>
-document.addEventListener("click", function (e) {
-
-    const notification = e.target.closest(".notification-item[data-url]");
-
-    if (!notification) {
-        return;
-    }
-
-    if (
-        e.target.closest("button") ||
-        e.target.closest("form") ||
-        e.target.closest(".notification-actions") ||
-        e.target.closest(".notification-rating")
-    ) {
-        return;
-    }
-
-    window.location.href = notification.dataset.url;
-
-});
-</script>
-
-<style>
-    .notification-item[data-url] {
-        cursor: pointer;
-        transition: all .2s ease;
-    }
-
-    .notification-item[data-url]:hover {
-        transform: translateY(-2px);
-    }
-</style>

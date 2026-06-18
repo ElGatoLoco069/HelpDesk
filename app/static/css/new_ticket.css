@@ -627,6 +627,7 @@ select:disabled {
         rgba(255,255,255,.2),
         transparent
     );
+    border-radius: 20px 30px 80px 75px;
     transform: rotate(25deg);
     animation: shine 5s linear infinite;
 }
@@ -700,20 +701,33 @@ textarea:hover {
     animation: fileAppear .35s ease;
 }
 
-/* Botões */
 .btn-primary,
-.btn-ghost {
-    transition: .3s;
+.btn-ghost{
+    position: relative;
+    overflow: hidden;
 }
 
-.btn-primary:hover,
-.btn-ghost:hover {
-    transform: translateY(-3px);
+.btn-primary::before,
+.btn-ghost::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,.25),
+        transparent
+    );
+
+    transform: translateX(-100%);
+    transition: .7s;
 }
 
-.btn-primary:active,
-.btn-ghost:active {
-    transform: scale(.96);
+.btn-primary:hover::before,
+.btn-ghost:hover::before{
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    transform: translateX(100%);
 }
 
 /* Preview */

@@ -331,12 +331,13 @@
                                 {{ interaction.message|linebreaksbr }}
                             </div>
 
-                            {% if interaction.attachment %}
+                            {% if interaction.attachments.all %}
 
                             <div class="interaction-attachments">
 
+                                {% for attachment in interaction.attachments.all %}
                                 <a
-                                    href="{{ interaction.attachment.url }}"
+                                    href="{{ attachment.file.url }}"
                                     target="_blank"
                                     rel="noopener"
                                     class="attachment-item"
@@ -345,10 +346,11 @@
                                     <i class="fas fa-paperclip"></i>
 
                                     <span>
-                                        {{ interaction.attachment.name }}
+                                        {{ attachment.original_name }}
                                     </span>
 
                                 </a>
+                                {% endfor %}
 
                             </div>
 
@@ -708,18 +710,6 @@ document.addEventListener(
     setupInteractionShowMore
 );
 
-items.forEach((item, index) => {
-
-    if (index < visibleLimit) return;
-
-    item.style.transitionDelay = `${index * 40}ms`;
-
-    item.classList.toggle(
-        "is-hidden",
-        expanded
-    );
-
-});
 </script>
 </body>
 {% endblock %}

@@ -5,14 +5,24 @@ from django.contrib.auth.models import User
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.contrib import messages
+from django.db.models import Q
 
 from registers.models import Category, Priority, Subcategory
-from ticket.models import Ticket, TicketAttachment, TicketReport, Ticket_Status, TicketInteraction
+from ticket.models import (
+    Ticket,
+    TicketAttachment,
+    TicketInteractionAttachment,
+    TicketReport,
+    Ticket_Status,
+    TicketInteraction,
+)
 from accounts.models import Profile
+from approval_flow.models import ApprovalRequest
 from notifications.models import UserNotification
 
 import random
 import string
+import unicodedata
 from datetime import datetime
 
 from notifications.views import SendNotification
@@ -53,6 +63,86 @@ def get_solution_status():
 
 def get_done_status():
     return get_status_by_name(STATUS_CONCLUIDO, "concluído")
+
+
+def normalize_status_name(name):
+    normalized = unicodedata.normalize("NFKD", name or "")
+    return normalized.encode("ascii", "ignore").decode("ascii").strip().lower()
+
+
+def get_solution_status():
+    status = get_status_by_name(STATUS_PROPOSTA, "proposta de solução")
+
+    if status:
+        return status
+
+    return Ticket_Status.objects.create(
+        name="Proposta de Solucao",
+        color="warning",
+        status=True
+    )
+
+
+def get_done_status():
+    return get_status_by_name(STATUS_CONCLUIDO, "concluído")
+
+
+def get_in_service_status():
+    return get_status_by_name("em andamento", "em atendimento", "andamento")
+
+
+def is_support_user(user):
+    try:
+        return user.is_superuser or user.profile.is_support
+    except Profile.DoesNotExist:
+        return user.is_superuser
+
+
+def can_access_ticket(user, ticket):
+    if not user.is_authenticated:
+        return False
+
+    return (
+        is_support_user(user)
+        or ticket.created_by_id == user.id
+        or ticket.assigned_to_id == user.id
+    )
+
+
+def get_accessible_ticket_queryset(user):
+    queryset = Ticket.objects.all()
+
+    if is_support_user(user):
+        return queryset
+
+    return queryset.filter(
+        Q(created_by=user) |
+        Q(assigned_to=user)
+    )
+
+
+def validate_attachments(request, attachments):
+    for attachment in attachments:
+        if attachment.content_type not in ACCEPTED_ATTACHMENT_TYPES:
+            messages.warning(request, f"{attachment.name} nao e um arquivo PNG, JPG ou PDF.")
+            return False
+
+        if attachment.size > MAX_ATTACHMENT_SIZE:
+            messages.warning(request, f"{attachment.name} excede o limite de 10MB.")
+            return False
+
+    return True
+
+
+def save_interaction_attachments(interaction, attachments):
+    for attachment in attachments:
+        TicketInteractionAttachment.objects.create(
+            interaction=interaction,
+            file=attachment,
+            original_name=attachment.name,
+            content_type=attachment.content_type,
+            size=attachment.size,
+        )
 
 
 @method_decorator(login_required(login_url="/"), name="dispatch")
@@ -125,14 +215,8 @@ class TicketView(View):
 
             attachments = request.FILES.getlist("attachments")
 
-            for attachment in attachments:
-                if attachment.content_type not in ACCEPTED_ATTACHMENT_TYPES:
-                    messages.warning(request, f"{attachment.name} nao e um arquivo PNG, JPG ou PDF.")
-                    return None
-
-                if attachment.size > MAX_ATTACHMENT_SIZE:
-                    messages.warning(request, f"{attachment.name} excede o limite de 10MB.")
-                    return None
+            if not validate_attachments(request, attachments):
+                return None
 
             ticket_hash = self.hash_generate()
             title = Subcategory.objects.get(id=subcategory)
@@ -203,10 +287,16 @@ class AssignmentMethod(View):
         
         lower_support_demand = None
         lower_demand = float('inf')
+        done_status = get_done_status()
         
         for user in support_users:
             
-            ticket_count = Ticket.objects.filter(assigned_to=user).exclude(status=5).count()
+            tickets = Ticket.objects.filter(assigned_to=user)
+
+            if done_status:
+                tickets = tickets.exclude(status=done_status)
+
+            ticket_count = tickets.count()
             
             if ticket_count < lower_demand:
                 lower_demand = ticket_count
@@ -242,11 +332,17 @@ class AssignmentMethod(View):
         
         lower_support_demand = None
         lower_demand = float('inf')
+        done_status = get_done_status()
 
         if assignment and assignment.technicians.exists():
             
             for user in assignment.technicians.all():
-                ticket_count = Ticket.objects.filter(assigned_to=user).exclude(status=5).count()
+                tickets = Ticket.objects.filter(assigned_to=user)
+
+                if done_status:
+                    tickets = tickets.exclude(status=done_status)
+
+                ticket_count = tickets.count()
                 
                 if ticket_count < lower_demand:
                     lower_demand = ticket_count
@@ -295,7 +391,31 @@ class TicketDetailView(View):
                 id=ticket_id,
             )
 
-            interactions = TicketInteraction.objects.filter(ticket=ticket)
+            if not can_access_ticket(request.user, ticket):
+                messages.warning(request, "Voce nao tem permissao para acessar este chamado.")
+                return redirect("home")
+
+            interactions = (
+                TicketInteraction.objects
+                .filter(ticket=ticket)
+                .select_related("user", "user__profile")
+                .prefetch_related("attachments")
+            )
+            approvers = (
+                User.objects
+                .filter(is_active=True)
+                .filter(Q(is_superuser=True) | Q(profile__is_support=True))
+                .exclude(id=request.user.id)
+                .distinct()
+                .order_by("first_name", "last_name", "username")
+            )
+            approval_requests = (
+                ApprovalRequest.objects
+                .filter(ticket=ticket)
+                .select_related("requested_by", "approver")
+            )
+            done_status = get_done_status()
+
             return render(
                 request,
                 "ticket_detail.html",
@@ -303,6 +423,10 @@ class TicketDetailView(View):
                     "active_page": "home",
                     "ticket": ticket,
                     "interactions":interactions,
+                    "approvers": approvers,
+                    "approval_requests": approval_requests,
+                    "can_request_approval": is_support_user(request.user),
+                    "ticket_is_closed": bool(done_status and ticket.status_id == done_status.id),
                 },
             )
 
@@ -344,7 +468,12 @@ class TicketEditView(View):
 
        
     def get_context(self, request, ticket):
-        interactions = TicketInteraction.objects.filter(ticket=ticket)
+        interactions = (
+            TicketInteraction.objects
+            .filter(ticket=ticket)
+            .select_related("user", "user__profile")
+            .prefetch_related("attachments")
+        )
         solution_status = get_solution_status()
         done_status = get_done_status()
         status_options = list(Ticket_Status.objects.filter(status=True).order_by("id"))
@@ -360,7 +489,7 @@ class TicketEditView(View):
             "ticket": ticket,
             "status": status_options,
             "priorities": Priority.objects.filter(status=True).order_by("id"),
-            "technicians": self.get_support_users,
+            "technicians": self.get_support_users(),
             "can_add_report": self.is_ticket_technician(request.user, ticket),
             "interactions":interactions,
         }
@@ -370,6 +499,14 @@ class TicketEditView(View):
 
         try:
             ticket = self.get_ticket(ticket_id)
+
+            if not can_access_ticket(request.user, ticket):
+                messages.warning(request, "Voce nao tem permissao para acessar este chamado.")
+                return redirect("home")
+
+            if not is_support_user(request.user):
+                messages.warning(request, "Apenas usuarios de suporte podem editar chamados.")
+                return redirect("ticket_detail", ticket_id=ticket.id)
 
             return render(request, "ticket_edit.html", self.get_context(request, ticket), )
 
@@ -385,6 +522,10 @@ class TicketEditView(View):
             ticket = self.get_ticket(ticket_id)
             action = request.POST.get("action")
 
+            if not can_access_ticket(request.user, ticket):
+                messages.warning(request, "Voce nao tem permissao para acessar este chamado.")
+                return redirect("home")
+
             if action == "create_report":
                 return self.create_report(request, ticket)
 
@@ -394,7 +535,7 @@ class TicketEditView(View):
             if action == "evaluate_service":
                 return self.evaluate_service(request, ticket)
 
-            if not request.user.profile.is_support:
+            if not is_support_user(request.user):
                 messages.warning(
                     request,
                     "Apenas usuarios de suporte podem editar o chamado."
@@ -470,7 +611,8 @@ class TicketEditView(View):
             # =========================
             if assigned_to_id and not User.objects.filter(
                 id=assigned_to_id,
-                is_active=True
+                is_active=True,
+                profile__is_support=True
             ).exists():
 
                 messages.warning(
@@ -505,7 +647,10 @@ class TicketEditView(View):
                 )
 
                 # força status para EM ATENDIMENTO
-                status_id = 2
+                in_service_status = get_in_service_status()
+
+                if in_service_status:
+                    status_id = in_service_status.id
 
             selected_status = Ticket_Status.objects.get(id=status_id)
 
@@ -669,8 +814,18 @@ class TicketEditView(View):
         f"O tecnico adicionou um relatorio ao chamado {ticket.hash}", 
         False, ticket.created_by, ticket_id=ticket.id)
 
-        ticket.status = Ticket_Status.objects.get(id=6)
-        ticket.save()
+        solution_status = get_solution_status()
+        ticket.status = solution_status
+        ticket.solution_proposed_at = timezone.now()
+        ticket.solution_responded_at = None
+        ticket.requester_solution_accepted = None
+        ticket.save(update_fields=[
+            "status",
+            "solution_proposed_at",
+            "solution_responded_at",
+            "requester_solution_accepted",
+            "updated_at",
+        ])
         
         SendNotification.warning(request, 
                 "Proposta de solucao", 
@@ -680,11 +835,6 @@ class TicketEditView(View):
                 "solution_validation",
                 ticket.id)
         
-        ticket.solution_proposed_at = timezone.now()
-        ticket.solution_responded_at = None
-        ticket.requester_solution_accepted = None
-
-
         messages.success(request, "Relatorio tecnico adicionado com sucesso!")
         return redirect("ticket_detail", ticket_id=ticket.id)
 
@@ -809,12 +959,9 @@ class TicketEditView(View):
             return redirect("ticket_detail", ticket_id=ticket.id)
 
         rating_value = request.POST.get("rating")
-        print(request.POST)
-        print(request.body)
         try:
             rating = int(rating_value)
         except (TypeError, ValueError):
-            print(f"Rating inválido recebido: {rating_value}")
             messages.warning(request, "Selecione uma nota valida.")
             return redirect("ticket_detail", ticket_id=ticket.id)
 
@@ -862,25 +1009,36 @@ class AddMessage(View):
 
         ticket = get_object_or_404(Ticket, hash=form_ticket)
 
+        if not can_access_ticket(request.user, ticket):
+            messages.warning(request, "Voce nao tem permissao para interagir neste chamado.")
+            return redirect("home")
+
         if not message:
             messages.error(request, "Digite uma mensagem válida.")
+            return redirect("ticket_detail", ticket.id)
+
+        attachments = request.FILES.getlist("attachments")
+
+        if not validate_attachments(request, attachments):
             return redirect("ticket_detail", ticket.id)
 
         if ticket.created_by == request.user:
             interaction_type = "requester"
 
-        elif ticket.assigned_to == request.user:
+        elif ticket.assigned_to == request.user or is_support_user(request.user):
             interaction_type = "technician"
 
         else:
             interaction_type = "system"
 
-        TicketInteraction.objects.create(
+        interaction = TicketInteraction.objects.create(
             ticket=ticket,
             user=request.user,
             message=message,
             interaction_type=interaction_type
         )
+
+        save_interaction_attachments(interaction, attachments)
 
         messages.success(request, "Mensagem adicionada com sucesso!")
 
@@ -895,7 +1053,7 @@ class AddMessage(View):
                 ticket_id=ticket.id
             )
 
-        elif ticket.assigned_to == request.user:
+        elif interaction_type == "technician":
 
             SendNotification.success(
                 request,

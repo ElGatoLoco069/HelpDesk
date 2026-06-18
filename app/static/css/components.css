@@ -1,0 +1,390 @@
+/* Shared interface components loaded after page-specific styles. */
+
+:root {
+    --radius-sm: 10px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --control-height: 42px;
+    --surface-shadow: 0 14px 34px rgba(34, 48, 68, 0.08);
+    --surface-shadow-hover: 0 18px 44px rgba(34, 48, 68, 0.12);
+}
+
+html.dark {
+    --surface-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+    --surface-shadow-hover: 0 18px 44px rgba(0, 0, 0, 0.30);
+}
+
+.page-shell,
+.dashboard-header,
+.page-header,
+.settings-header,
+.ticket-detail-header,
+.central-header {
+    max-width: 1480px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: var(--radius-sm);
+    background: var(--input-background);
+    color: var(--primary-color);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.btn-primary,
+.btn-ghost,
+.mark-read-btn,
+.notification-action,
+.rating-action,
+.action-btn,
+.custom-modal .btn-primary,
+.custom-modal .btn-light,
+.custom-modal .btn-danger {
+    min-height: var(--control-height);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease,
+        color 0.18s ease;
+}
+
+.btn-primary,
+.mark-read-btn,
+.custom-modal .btn-primary {
+    border: none;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: var(--white-color);
+}
+
+.btn-primary.success,
+.action-btn.success,
+.notification-action.success {
+    background: linear-gradient(135deg, var(--success-color), var(--success-hover));
+    color: var(--white-color);
+}
+
+.btn-primary.danger,
+.action-btn.danger,
+.notification-action.danger,
+.custom-modal .btn-danger {
+    background: linear-gradient(135deg, var(--danger-color), var(--danger-hover));
+    color: var(--white-color);
+}
+
+.btn-ghost,
+.custom-modal .btn-light {
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-color);
+}
+
+.btn-ghost.danger {
+    border-color: rgba(201, 92, 92, 0.28);
+    color: var(--danger-color);
+}
+
+.btn-primary:hover,
+.btn-ghost:hover,
+.mark-read-btn:hover,
+.notification-action:hover,
+.rating-action:hover,
+.custom-modal .btn-primary:hover,
+.custom-modal .btn-light:hover,
+.custom-modal .btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(74, 144, 226, 0.18);
+}
+
+.btn-ghost:hover {
+    border-color: var(--primary-color);
+    background: rgba(74, 144, 226, 0.08);
+}
+
+.ticket-actions .action-btn,
+.category-actions .action-btn {
+    width: 36px;
+    min-height: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    background: var(--input-background);
+    color: var(--text-light);
+}
+
+.ticket-actions .action-btn.view:hover,
+.category-actions .action-btn.view:hover {
+    border-color: rgba(74, 144, 226, 0.38);
+    color: var(--primary-color);
+}
+
+.ticket-actions .action-btn.edit:hover,
+.category-actions .action-btn.edit:hover {
+    border-color: rgba(198, 146, 59, 0.38);
+    color: var(--warning-color);
+}
+
+.ticket-actions .action-btn.trash:hover,
+.ticket-actions .action-btn.danger:hover,
+.category-actions .action-btn.trash:hover,
+.category-actions .action-btn.danger:hover {
+    border-color: rgba(201, 92, 92, 0.38);
+    color: var(--danger-color);
+}
+
+.actions-card .action-btn {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+}
+
+.card,
+.summary-card,
+.focus-card,
+.ticket-list,
+.form-card,
+.form-sidebar,
+.settings-card,
+.detail-card,
+.category-card,
+.category-toolbar {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--card-background);
+    box-shadow: var(--surface-shadow);
+}
+
+.summary-card,
+.detail-card,
+.focus-card,
+.ticket-list,
+.form-card,
+.settings-card,
+.category-card,
+.maintenance-card,
+.actions-card {
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease;
+}
+
+.summary-card:hover,
+.detail-card:hover,
+.focus-card:hover,
+.ticket-list:hover,
+.form-card:hover,
+.settings-card:hover,
+.category-card:hover,
+.maintenance-card:hover,
+.actions-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--surface-shadow-hover);
+}
+
+.summary-icon,
+.modal-icon,
+.detail-card-header i,
+.settings-card-header i,
+.empty-ticket-state i,
+.empty-attachments i {
+    border-radius: var(--radius-md);
+    background: rgba(74, 144, 226, 0.12);
+    color: var(--primary-color);
+}
+
+.badge-status,
+.focus-badge,
+.badgee,
+.interaction-role {
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+input,
+select,
+textarea,
+.modal_input {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--input-background);
+    color: var(--text-color);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.modal_input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.16);
+    outline: none;
+}
+
+.field label,
+.edit-field span,
+.settings-field span,
+.modal-field span,
+.input-field label {
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.file-upload-area {
+    border-color: var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--input-background);
+}
+
+.file-item,
+.attention-item,
+.metric-item,
+.report-item,
+.approval-item,
+.history-item,
+.notification-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--item-background);
+}
+
+.empty-inline,
+.empty-attachments,
+.empty-ticket-state,
+.notification-empty {
+    border-radius: var(--radius-md);
+    background: var(--item-background);
+    color: var(--text-light);
+}
+
+.approval-list,
+.maintenance-history {
+    display: grid;
+    gap: 12px;
+}
+
+.approval-item,
+.history-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px;
+    color: var(--text-color);
+}
+
+.approval-item.pending {
+    border-left: 4px solid var(--warning-color);
+}
+
+.approval-item.approved {
+    border-left: 4px solid var(--success-color);
+}
+
+.approval-item.rejected {
+    border-left: 4px solid var(--danger-color);
+}
+
+.approval-copy {
+    display: grid;
+    gap: 6px;
+}
+
+.approval-copy span,
+.approval-copy small,
+.history-item span,
+.history-item small {
+    color: var(--text-light);
+    font-size: 12px;
+}
+
+.approval-copy p {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.approval-actions {
+    min-width: min(360px, 100%);
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+}
+
+.maintenance-form {
+    display: grid;
+    gap: 12px;
+}
+
+.maintenance-form label {
+    display: grid;
+    gap: 6px;
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.maintenance-form input,
+.maintenance-form textarea,
+.approval-actions input {
+    width: 100%;
+}
+
+.status-card .indicator.danger,
+.badgee.danger {
+    background: rgba(201, 92, 92, 0.12);
+    color: var(--danger-color);
+}
+
+.badgee.scheduled {
+    background: rgba(198, 146, 59, 0.12);
+    color: var(--warning-color);
+}
+
+@media (max-width: 768px) {
+    .btn-primary,
+    .btn-ghost {
+        width: 100%;
+    }
+
+    .approval-item,
+    .history-item {
+        flex-direction: column;
+    }
+
+    .approval-actions {
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+}

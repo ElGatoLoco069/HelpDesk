@@ -516,6 +516,23 @@ if (markReadBtn) {
 // ATUALIZAR NOTIFICAÇÕES
 // ================================
 
+document.addEventListener("click", function (event) {
+    const notification = event.target.closest(".notification-item[data-url]");
+
+    if (!notification) return;
+
+    if (
+        event.target.closest("button") ||
+        event.target.closest("form") ||
+        event.target.closest(".notification-actions") ||
+        event.target.closest(".notification-rating")
+    ) {
+        return;
+    }
+
+    window.location.href = notification.dataset.url;
+});
+
 async function refreshNotifications() {
 
     if (!notificationBody?.dataset.refreshUrl) return;

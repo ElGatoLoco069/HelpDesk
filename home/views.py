@@ -20,7 +20,7 @@ class HomeView(View):
 
     def get(self, request):
 
-        preferences = UserPreferences.objects.get(user=request.user)
+        preferences, _ = UserPreferences.objects.get_or_create(user=request.user)
         search = (request.GET.get("search") or "").strip()
         status_filter = request.GET.get("status") or ""
         priority_filter = request.GET.get("priority") or ""
@@ -72,7 +72,7 @@ class HomeView(View):
         waiting_status = next(
             (
                 item for item in status
-                if item.name.lower() == "Aguardando Fornecedor" or item.name.lower() == "Açao do Cliente"
+                if item.name.lower() in ["aguardando fornecedor", "acao do cliente", "ação do cliente"]
             ),
             None
         )
@@ -181,7 +181,10 @@ class HomeView(View):
         if request.GET.get("partial") == "tickets":
             html = render_to_string(
                 "partials/ticket_list_items.html",
-                {"tickets": tickets},
+                {
+                    "tickets": tickets,
+                    "done_status": done_status,
+                },
                 request=request
             )
 
@@ -321,6 +324,7 @@ class HomeView(View):
 
                 "prioritys": prioritys,
                 "status": status,
+                "done_status": done_status,
                 "tecnicos": tecnicos,
 
                 "filters": {

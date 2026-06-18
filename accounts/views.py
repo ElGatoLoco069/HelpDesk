@@ -40,6 +40,7 @@ class AccountsView(View):
                 user, created = User.objects.get_or_create(username=username)
                 user.first_name = ad_user["first_name"]
                 user.last_name = ad_user["last_name"]
+                user.email = ad_user["email"]
                 user.save()
 
                 maintenance_response = is_under_maintenance(request)
@@ -142,7 +143,7 @@ class SettingsView(View):
 
     def get(self, request):
         
-        preferences = UserPreferences.objects.get(user=request.user)
+        preferences, _ = UserPreferences.objects.get_or_create(user=request.user)
         
         return render(
             request,
@@ -216,7 +217,7 @@ class SettingsView(View):
         indicators = request.POST.get("indicators")
         service_queue = request.POST.get("service_queue")
         
-        preference = UserPreferences.objects.get(user=user)
+        preference, _ = UserPreferences.objects.get_or_create(user=user)
         
         if indicators == "on":
             preference.indicators = True
@@ -257,5 +258,3 @@ class SettingsView(View):
 
         messages.success(request, "Notificacao enviada para todos os usuarios.")
         return redirect("settings")
-
-

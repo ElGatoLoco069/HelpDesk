@@ -25,6 +25,7 @@ from registers.views import CategoryView, get_subcategories
 from notifications.views import mark_notifications_read, notifications_events, notifications_snapshot
 from signature.views import SignatureView
 from system.views import SystemView
+from approval_flow.views import ApprovalDecisionView, RequestApprovalView
 
 
 urlpatterns = [
@@ -45,6 +46,8 @@ urlpatterns = [
     path("notifications/events/", notifications_events, name="notifications_events"),
     path("settings/update_dashboard/", SettingsView.as_view(), name="update_dashboard"),
     path("system/maintenance_center/", SystemView.as_view(), name="maintenance_center"),
+    path("approval/request/", RequestApprovalView.as_view(), name="request_approval"),
+    path("approval/<int:approval_id>/decision/", ApprovalDecisionView.as_view(), name="approval_decision"),
 ]
 
 if settings.DEBUG:

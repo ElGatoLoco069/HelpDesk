@@ -25,8 +25,8 @@
             Voltar
         </a>
 
-        {% if ticket.status.id != 5 %}
-            {% if request.user.profile.is_support %}
+        {% if not ticket_is_closed %}
+            {% if can_request_approval %}
 
             <button
                 class="btn-primary"
@@ -264,16 +264,18 @@
                         {{ interaction.message|linebreaksbr }}
                     </div>
 
-                    {% if interaction.attachment %}
+                    {% if interaction.attachments.all %}
                     <div class="interaction-attachments">
 
-                        <a href="{{ interaction.attachment.url }}" target="_blank" rel="noopener" class="attachment-item">
+                        {% for attachment in interaction.attachments.all %}
+                        <a href="{{ attachment.file.url }}" target="_blank" rel="noopener" class="attachment-item">
                             <i class="fas fa-paperclip"></i>
 
                             <span>
-                                {{ interaction.attachment.name }}
+                                {{ attachment.original_name }}
                             </span>
                         </a>
+                        {% endfor %}
 
                     </div>
                     {% endif %}
@@ -625,11 +627,108 @@
     </article>
 </section>
 
+<!-- AUTORIZACOES -->
+<section class="detail-layout technician-row">
+
+    <article class="detail-card">
+
+        <div class="detail-card-header">
+
+            <div>
+
+                <h2>
+                    Autorizações
+                </h2>
+
+                <p>
+                    Solicitações vinculadas ao atendimento deste chamado.
+                </p>
+
+            </div>
+
+            <span class="focus-badge">
+                {{ approval_requests|length }} registros
+            </span>
+
+        </div>
+
+        <div class="approval-list">
+
+            {% for approval in approval_requests %}
+
+            <article class="approval-item {{ approval.status }}">
+
+                <div class="approval-copy">
+                    <strong>
+                        {{ approval.get_status_display }}
+                    </strong>
+
+                    <span>
+                        Solicitado por {{ approval.requested_by.get_full_name|default:approval.requested_by.username }}
+                        para {{ approval.approver.get_full_name|default:approval.approver.username }}
+                    </span>
+
+                    <p>
+                        {{ approval.reason|linebreaksbr }}
+                    </p>
+
+                    {% if approval.response_comment %}
+                    <small>
+                        {{ approval.response_comment }}
+                    </small>
+                    {% endif %}
+                </div>
+
+                {% if approval.status == "pending" and approval.approver_id == request.user.id %}
+                <form class="approval-actions" method="post" action="{% url 'approval_decision' approval.id %}">
+                    {% csrf_token %}
+
+                    <input
+                        type="text"
+                        name="response_comment"
+                        maxlength="500"
+                        placeholder="Observação opcional"
+                    >
+
+                    <button class="btn-primary success" type="submit" name="decision" value="approve">
+                        <i class="fas fa-check"></i>
+                        Aprovar
+                    </button>
+
+                    <button class="btn-ghost danger" type="submit" name="decision" value="reject">
+                        <i class="fas fa-xmark"></i>
+                        Rejeitar
+                    </button>
+                </form>
+                {% endif %}
+
+            </article>
+
+            {% empty %}
+
+            <div class="empty-attachments">
+
+                <i class="fas fa-clipboard-check"></i>
+
+                <span>
+                    Nenhuma autorização solicitada neste chamado.
+                </span>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </article>
+
+</section>
+
 <div class="modal fade custom-modal" id="approvalModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
 
-            <form id="approvalForm" method="post" action="">
+            <form id="approvalForm" method="post" action="{% url 'request_approval' %}">
                 {% csrf_token %}
 
                 <input type="hidden" name="ticket_id" id="approvalTicketId">
@@ -810,19 +909,6 @@ document.addEventListener(
     setupInteractionShowMore
 );
 
-items.forEach((item, index) => {
-
-    if (index < visibleLimit) return;
-
-    item.style.transitionDelay = `${index * 40}ms`;
-
-    item.classList.toggle(
-        "is-hidden",
-        expanded
-    );
-
-});
-
 function openApprovalModal(button) {
 
     const ticketId = button.dataset.ticketId;
@@ -856,5 +942,4 @@ document.getElementById("approvalForm")
 </script>
 </body>
 
-<script src="{% static 'js/new_ticket.js' %}"></script>
 {% endblock %}

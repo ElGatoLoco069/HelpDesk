@@ -1,5 +1,11 @@
 from django.contrib import admin
-from ticket.models import Ticket, TicketAttachment, TicketReport, Ticket_Status
+from ticket.models import (
+    Ticket,
+    TicketAttachment,
+    TicketInteractionAttachment,
+    TicketReport,
+    Ticket_Status,
+)
 
 
 # Register your models here.
@@ -54,6 +60,23 @@ class TicketAttachmentAdmin(admin.ModelAdmin):
 
     search_fields = [
         "ticket__hash",
+        "original_name",
+    ]
+
+
+@admin.register(TicketInteractionAttachment)
+class TicketInteractionAttachmentAdmin(admin.ModelAdmin):
+
+    list_display = [
+        "interaction",
+        "original_name",
+        "content_type",
+        "size",
+        "created_at",
+    ]
+
+    search_fields = [
+        "interaction__ticket__hash",
         "original_name",
     ]
 

@@ -19,7 +19,7 @@ class Ticket(models.Model):
 
     hash = models.CharField(max_length=150, unique=True)
     title = models.ForeignKey(Subcategory, on_delete=models.PROTECT)
-    description = models.TextField(max_length=355)
+    description = models.TextField(max_length=550)
 
     status = models.ForeignKey(Ticket_Status, on_delete=models.PROTECT)
 
@@ -86,7 +86,7 @@ class TicketReport(models.Model):
 
 
 class TicketInteraction(models.Model):
-    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    ticket = models.ForeignKey(Ticket, related_name="interactions", on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     message = models.TextField()
@@ -101,3 +101,29 @@ class TicketInteraction(models.Model):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"{self.ticket.hash} - {self.user}"
+
+
+class TicketInteractionAttachment(models.Model):
+
+    interaction = models.ForeignKey(
+        TicketInteraction,
+        related_name="attachments",
+        on_delete=models.CASCADE
+    )
+    file = models.FileField(upload_to="ticket_interactions/%Y/%m/")
+    original_name = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=100)
+    size = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return self.original_name

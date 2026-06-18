@@ -1045,10 +1045,40 @@
     background: rgba(148, 163, 184, 0.05);
 }
 
-.file-upload-area:hover {
-    border-color: var(--primary-color);
-    background: rgba(59, 130, 246, 0.05);
+/* Upload */
+.file-upload-area {
+    position: relative;
+    overflow: hidden;
 }
+
+.file-upload-area::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(
+            120deg,
+            transparent,
+            rgba(59,130,246,.08),
+            transparent
+        );
+    transform: translateX(-100%);
+    transition: .8s;
+}
+
+.file-upload-area:hover::before {
+    transform: translateX(100%);
+}
+
+.file-upload.dragover .file-upload-area {
+    animation: uploadPulse 1s infinite;
+}
+
+/* Arquivos */
+.file-item {
+    animation: fileAppear .35s ease;
+}
+
 
 /* DRAG ATIVO */
 .file-upload.dragover .file-upload-area {

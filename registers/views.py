@@ -7,12 +7,22 @@ from django.contrib import messages
 from django.http import JsonResponse
 from registers.models import AssignmentMethod, Category, Priority, Subcategory
 
+
+def user_is_support(user):
+    try:
+        return user.is_superuser or user.profile.is_support
+    except Exception:
+        return user.is_superuser
+
 @method_decorator(login_required(login_url="/"), name="dispatch")
 class CategoryView(View):
     
     def get(self, request):
         
         try: 
+            if not user_is_support(request.user):
+                messages.warning(request, "Apenas usuarios de suporte podem acessar cadastros.")
+                return redirect("home")
             
             categories = Category.objects.filter(status=True)
             priorities = Priority.objects.filter(status=True)
@@ -38,6 +48,9 @@ class CategoryView(View):
     def post(self, request):
         
         try:
+            if not user_is_support(request.user):
+                messages.warning(request, "Apenas usuarios de suporte podem alterar cadastros.")
+                return redirect("home")
             
             action = request.POST.get("action")
             

@@ -25,6 +25,9 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-4)e!$m4g)ax82v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
+if not DEBUG and SECRET_KEY.startswith("django-insecure-"):
+    raise RuntimeError("Defina DJANGO_SECRET_KEY com um valor seguro para producao.")
+
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
@@ -32,7 +35,22 @@ ALLOWED_HOSTS = [
     "helpdesk.cafelandia.pr.gov.br",
 ]
 
+extra_allowed_hosts = os.environ.get("DJANGO_ALLOWED_HOSTS")
+
+if extra_allowed_hosts:
+    ALLOWED_HOSTS.extend(
+        host.strip()
+        for host in extra_allowed_hosts.split(",")
+        if host.strip()
+    )
+
 SESSION_COOKIE_AGE = 3600 
+SESSION_COOKIE_SECURE = os.environ.get("DJANGO_SESSION_COOKIE_SECURE", "False") == "True"
+CSRF_COOKIE_SECURE = os.environ.get("DJANGO_CSRF_COOKIE_SECURE", "False") == "True"
+SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "False") == "True"
+SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "0"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get("DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", "False") == "True"
+SECURE_HSTS_PRELOAD = os.environ.get("DJANGO_SECURE_HSTS_PRELOAD", "False") == "True"
 
 # Application definition
 
@@ -51,7 +69,8 @@ INSTALLED_APPS = [
     'registers',
     'notifications',
     'signature',
-    'system'
+    'system',
+    'approval_flow',
 ]
 
 MIDDLEWARE = [

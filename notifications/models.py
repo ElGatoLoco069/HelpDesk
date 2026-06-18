@@ -37,6 +37,7 @@ class Notification(models.Model):
         ("", "Nenhuma"),
         ("solution_validation", "Validacao de solucao"),
         ("service_evaluation", "Avaliacao de atendimento"),
+        ("approval_request", "Solicitacao de autorizacao"),
     ]
 
     title = models.CharField(max_length=150)

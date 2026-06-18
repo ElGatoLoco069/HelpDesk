@@ -45,8 +45,6 @@ media/
 staticfiles/
 
 # Migrações
-**/migrations/
-!**/migrations/__init__.py
 
 # Cache Django
 *.mo
