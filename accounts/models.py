@@ -13,9 +13,6 @@ class Profile(models.Model):
     ticket_auto_refresh_seconds = models.PositiveSmallIntegerField(default=30)
 
     last_activity = models.DateTimeField(null=True, blank=True)
-    authenticator_secret = models.CharField(max_length=64, blank=True)
-    authenticator_enabled = models.BooleanField(default=False)
-    authenticator_confirmed_at = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
         return self.user.username

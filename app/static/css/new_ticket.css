@@ -402,6 +402,7 @@ textarea:focus {
 
 /* TABLET */
 @media (max-width: 1024px) {
+    .form-shell,
     .form-layout {
         grid-template-columns: 1fr;
     }
@@ -860,6 +861,41 @@ textarea:hover {
 
     .ticket-preview {
         min-width: 0;
+    }
+}
+
+@media (max-width: 560px) {
+    .page-header,
+    .page-header-badge {
+        width: 100%;
+    }
+
+    .form-card,
+    .form-sidebar {
+        padding: 18px;
+        border-radius: 16px;
+    }
+
+    .form-sidebar {
+        gap: 14px;
+    }
+
+    .step-pill {
+        align-items: flex-start;
+    }
+
+    .file-upload-area {
+        padding: 18px;
+    }
+
+    .file-item {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .file-info {
+        width: 100%;
     }
 }
 

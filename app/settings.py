@@ -69,7 +69,6 @@ INSTALLED_APPS = [
     'registers',
     'notifications',
     'signature',
-    'system',
     'approval_flow',
 ]
 

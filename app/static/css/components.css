@@ -181,7 +181,6 @@ html.dark {
 .form-card,
 .settings-card,
 .category-card,
-.maintenance-card,
 .actions-card {
     transition:
         transform 0.18s ease,
@@ -196,7 +195,6 @@ html.dark {
 .form-card:hover,
 .settings-card:hover,
 .category-card:hover,
-.maintenance-card:hover,
 .actions-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--surface-shadow-hover);
@@ -288,8 +286,51 @@ textarea:focus,
     color: var(--text-light);
 }
 
-.approval-list,
-.maintenance-history {
+img,
+video,
+canvas,
+svg {
+    max-width: 100%;
+}
+
+.page-shell,
+.dashboard-header,
+.page-header,
+.settings-header,
+.ticket-detail-header,
+.central-header,
+.category-page-header {
+    width: 100%;
+    min-width: 0;
+}
+
+.card,
+.summary-card,
+.focus-card,
+.ticket-list,
+.form-card,
+.form-sidebar,
+.settings-card,
+.detail-card,
+.category-card,
+.category-toolbar,
+.actions-card,
+.item,
+.ticket-item,
+.history-item,
+.approval-item,
+.notification-item {
+    min-width: 0;
+}
+
+input,
+select,
+textarea,
+button {
+    max-width: 100%;
+}
+
+.approval-list {
     display: grid;
     gap: 12px;
 }
@@ -341,22 +382,6 @@ textarea:focus,
     gap: 8px;
 }
 
-.maintenance-form {
-    display: grid;
-    gap: 12px;
-}
-
-.maintenance-form label {
-    display: grid;
-    gap: 6px;
-    color: var(--text-light);
-    font-size: 12px;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-.maintenance-form input,
-.maintenance-form textarea,
 .approval-actions input {
     width: 100%;
 }
@@ -385,6 +410,42 @@ textarea:focus,
 
     .approval-actions {
         grid-template-columns: 1fr;
+        width: 100%;
+    }
+}
+
+@media (max-width: 900px) {
+    .dashboard-header,
+    .page-header,
+    .settings-header,
+    .ticket-detail-header,
+    .category-page-header,
+    .category-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 560px) {
+    .approval-item,
+    .history-item,
+    .notification-item,
+    .item {
+        align-items: stretch;
+    }
+
+    .modal-dialog {
+        margin: 12px;
+    }
+
+    .modal-actions,
+    .custom-modal .actions {
+        flex-direction: column;
+    }
+
+    .custom-modal .btn-primary,
+    .custom-modal .btn-light,
+    .custom-modal .btn-danger {
         width: 100%;
     }
 }

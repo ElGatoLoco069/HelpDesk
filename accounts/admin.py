@@ -28,16 +28,6 @@ class UserPreferencesAdmin(admin.ModelAdmin):
     ]
 
 
-@admin.action(description="Colocar sistema em manutenção")
-def enable_maintenance(modeladmin, request, queryset):
-    queryset.update(under_maintenance=True)
-
-
-@admin.action(description="Colocar sistema em operação")
-def disable_maintenance(modeladmin, request, queryset):
-    queryset.update(under_maintenance=False)
-
-    
 # Remove o admin padrão do User
 admin.site.unregister(User)
 

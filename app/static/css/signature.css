@@ -79,7 +79,7 @@ label {
 
 .preview-panel {
     flex: 1;
-    overflow-x: visible!important;
+    overflow-x: auto!important;
     overflow-y: visible!important;
     padding: 20px;
 }
@@ -467,6 +467,7 @@ label {
 
     .container {
         flex-direction: column;
+        padding: 0;
     }
 
     .form-panel {
@@ -476,5 +477,82 @@ label {
 
     .preview-panel {
         width: 100%;
+        padding: 12px 0 18px;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-panel {
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .preview-panel {
+        border-radius: 14px;
+    }
+
+    .signature-preview {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+
+    #signature {
+        width: 760px;
+        padding: 28px;
+    }
+
+    .left img {
+        width: 180px;
+    }
+
+    .cidade {
+        font-size: 40px;
+    }
+
+    .right h1 {
+        font-size: 29px;
+    }
+
+    .right h2 {
+        font-size: 26px;
+    }
+
+    .right p,
+    .contact,
+    .contact-row div {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 520px) {
+    #signature {
+        width: 680px;
+        padding: 24px;
+    }
+
+    .divider {
+        margin: 0 20px;
+    }
+
+    .left img {
+        width: 150px;
+    }
+
+    .cidade {
+        font-size: 34px;
+    }
+
+    .right h1 {
+        font-size: 25px;
+    }
+
+    .right h2 {
+        font-size: 23px;
+    }
+
+    .contact-row {
+        flex-wrap: wrap;
+        gap: 12px;
     }
 }

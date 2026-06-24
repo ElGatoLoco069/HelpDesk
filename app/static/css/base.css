@@ -39,6 +39,12 @@ html {
     scrollbar-width: thin;
 }
 
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 * {
     scrollbar-color: var(--scrollbar-thumb) transparent;
     scrollbar-width: thin;
@@ -295,12 +301,16 @@ a[aria-busy="true"] i {
     position: sticky;
     top: 0;
     height: 100vh;
+    min-height: 100vh;
+    height: 100dvh;
+    min-height: 100dvh;
     width: 290px;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     padding: 18px;
-    background: transparent;
+    background: var(--card-background);
+    box-shadow: 0 14px 34px var(--shadow-light);
     transition: width 0.4s ease;
 }
 
@@ -318,7 +328,7 @@ a[aria-busy="true"] i {
 .sidebar .sidebar-header,
 .sidebar .sidebar-content,
 .sidebar .sidebar-footer {
-    background: var(--card-background);
+    background: transparent;
 }
 
 .sidebar .sidebar-header {
@@ -462,6 +472,7 @@ a[aria-busy="true"] i {
 
 .sidebar .sidebar-content {
     flex: 1;
+    min-height: 0;
     padding: 16px 14px;
     border-radius: 20px;
     overflow: hidden auto;
@@ -564,6 +575,7 @@ a[aria-busy="true"] i {
 }
 
 .sidebar .sidebar-footer {
+    flex: 0 0 auto;
     padding: 14px;
     border-radius: 20px 20px 24px 24px;
     margin-top: 12px;
@@ -652,10 +664,13 @@ html.dark .theme-toggle-track .theme-toggle-indicator {
 .sidebar-container {
     display: flex;
     align-items: flex-start;
+    width: 100%;
+    min-width: 0;
 }
 
 .sidebar-container .main-content {
     flex: 1;
+    min-width: 0;
     padding: 30px 30px 30px 10px;
 }
 
@@ -747,6 +762,7 @@ li {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
     width: 100%;
     min-height: 76px;
     color: var(--text-color);
@@ -1181,7 +1197,10 @@ li {
         position: fixed;
         left: 0;
         width: 290px;
-        height: 100%;
+        height: 100vh;
+        min-height: 100vh;
+        height: 100dvh;
+        min-height: 100dvh;
         z-index: 20;
         transition: left 0.4s ease;
     }
@@ -1192,6 +1211,8 @@ li {
     }
 
     .sidebar-container .main-content {
+        width: 100%;
+        min-width: 0;
         padding: 20px;
     }
 
@@ -1203,7 +1224,104 @@ li {
         border-radius: 20px;
     }
 
+    .topbar .user {
+        min-width: 0;
+    }
+
+    .user-copy {
+        min-width: 0;
+    }
+
+    .full-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     .sidebar:not(.collapsed) .site-nav {
         display: none!important;
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar-container .main-content {
+        padding: 14px;
+    }
+
+    .topbar {
+        min-height: 66px;
+        padding: 12px 14px;
+    }
+
+    .topbar .user .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+    }
+
+    .user-label {
+        display: none;
+    }
+}
+
+/* Mantem a sidebar preenchendo a viewport inteira no desktop. */
+.sidebar-container {
+    display: block;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+    background: var(--card-background);
+}
+
+.sidebar .sidebar-content {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.sidebar .sidebar-footer {
+    margin-top: auto;
+}
+
+.sidebar-container .main-content {
+    width: calc(100% - 290px);
+    margin-left: 290px;
+    transition: margin-left 0.4s ease, width 0.4s ease;
+}
+
+.sidebar.collapsed + .main-content {
+    width: calc(100% - 100px);
+    margin-left: 100px;
+}
+
+@media (max-width: 768px) {
+    .sidebar-container {
+        display: flex;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
+    .sidebar {
+        inset: 0 auto 0 0;
+        width: 290px;
+        height: 100vh;
+        height: 100dvh;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
+    .sidebar-container .main-content,
+    .sidebar.collapsed + .main-content {
+        width: 100%;
+        margin-left: 0;
     }
 }

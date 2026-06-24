@@ -5,6 +5,24 @@
 const sidebar = document.querySelector(".sidebar");
 const sidebarToggleBtn = document.querySelectorAll(".sidebar-toggle");
 
+function getSavedSidebarState() {
+    try {
+        return localStorage.getItem("sidebarCollapsed") === "true";
+    } catch (error) {
+        return false;
+    }
+}
+
+function saveSidebarState(isCollapsed) {
+    try {
+        localStorage.setItem("sidebarCollapsed", String(isCollapsed));
+    } catch (error) {}
+}
+
+if (sidebar && getSavedSidebarState()) {
+    sidebar.classList.add("collapsed");
+}
+
 // ================================
 // LOADING GLOBAL
 // ================================
@@ -147,7 +165,11 @@ sidebarToggleBtn.forEach(btn => {
 
     btn.addEventListener("click", () => {
 
-        sidebar.classList.toggle("collapsed");
+        if (!sidebar) return;
+
+        const isCollapsed = sidebar.classList.toggle("collapsed");
+
+        saveSidebarState(isCollapsed);
 
     });
 
@@ -237,6 +259,13 @@ dropdowns.forEach(dropdown => {
         e.preventDefault();
 
         const parent = dropdown.closest(".has-dropdown");
+
+        if (sidebar?.classList.contains("collapsed")) {
+            sidebar.classList.remove("collapsed");
+            saveSidebarState(false);
+        }
+
+        if (!parent) return;
 
         parent.classList.toggle("active");
 

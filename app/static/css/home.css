@@ -1006,3 +1006,64 @@ select:focus {
         text-align: left;
     }
 }
+
+@media (max-width: 920px) {
+    .filters {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: end;
+    }
+
+    .filters .input-field,
+    .filters input,
+    .filters select,
+    .filters button {
+        width: 100%;
+    }
+
+    .ticket-meta {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 560px) {
+    .dashboard-header,
+    .dashboard-actions,
+    .ticket-list-header,
+    .focus-header {
+        gap: 12px;
+    }
+
+    .summary-card {
+        min-height: 104px;
+        padding: 16px;
+    }
+
+    .value {
+        font-size: 26px;
+    }
+
+    .ticket-list {
+        padding: 14px;
+    }
+
+    .filters {
+        grid-template-columns: 1fr;
+    }
+
+    .ticket-item {
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .ticket-meta,
+    .ticket-details {
+        gap: 6px;
+    }
+
+    .ticket-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+}

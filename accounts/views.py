@@ -9,7 +9,6 @@ from ldap3.utils.conv import escape_filter_chars
 from django.contrib import messages
 from notifications.views import SendNotification
 from accounts.models import UserPreferences
-from system.views import is_under_maintenance
 
 
 class AccountsView(View):
@@ -42,11 +41,6 @@ class AccountsView(View):
                 user.last_name = ad_user["last_name"]
                 user.email = ad_user["email"]
                 user.save()
-
-                maintenance_response = is_under_maintenance(request)
-
-                if maintenance_response:
-                    return maintenance_response
 
                 login(request, user)
                 messages.success(request, "Usuário logado com sucesso!")

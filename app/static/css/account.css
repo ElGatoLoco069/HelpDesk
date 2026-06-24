@@ -8,6 +8,8 @@
 
 body {
     min-height: 100vh;
+    max-width: 100%;
+    overflow-x: hidden;
     background: var(--background-color);
     color: var(--text-color);
     font-family: "Inter", "Segoe UI", sans-serif;
@@ -399,5 +401,24 @@ body.auth-busy {
 
     .panel-list {
         display: none;
+    }
+}
+
+@media (max-width: 420px) {
+    .auth-panel,
+    .auth-form {
+        padding: 20px;
+    }
+
+    .brand-header {
+        align-items: flex-start;
+    }
+
+    .panel-copy h1 {
+        font-size: 22px;
+    }
+
+    .form-title {
+        font-size: 22px;
     }
 }

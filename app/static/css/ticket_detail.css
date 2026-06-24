@@ -1741,3 +1741,57 @@ html{
         grid-template-columns: 1fr;
     }
 }
+
+@media (max-width: 560px) {
+    .detail-card {
+        padding: 14px;
+    }
+
+    .summary-card {
+        min-height: 104px;
+        padding: 16px;
+    }
+
+    .detail-card-header {
+        gap: 12px;
+    }
+
+    .person-card,
+    .report-header,
+    .interaction-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .interaction-item {
+        gap: 10px;
+    }
+
+    .interaction-item:not(:last-child)::before {
+        left: 19px;
+    }
+
+    .interaction-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+    }
+
+    .interaction-content {
+        padding: 14px;
+    }
+
+    .interaction-attachments .attachment-item,
+    .attachment-item,
+    .empty-attachments {
+        grid-template-columns: 34px minmax(0, 1fr);
+    }
+
+    .modal-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-field.full {
+        grid-column: auto;
+    }
+}
