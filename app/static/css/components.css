@@ -15,15 +15,22 @@ html.dark {
     --surface-shadow-hover: 0 18px 44px rgba(0, 0, 0, 0.30);
 }
 
-.page-shell,
+.page-shell {
+    max-width: 1480px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .dashboard-header,
 .page-header,
 .settings-header,
 .ticket-detail-header,
-.central-header {
-    max-width: 1480px;
-    margin-left: auto;
-    margin-right: auto;
+.central-header,
+.category-page-header {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .eyebrow {
