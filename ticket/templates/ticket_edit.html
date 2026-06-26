@@ -331,31 +331,6 @@
                                 {{ interaction.message|linebreaksbr }}
                             </div>
 
-                            {% if interaction.attachments.all %}
-
-                            <div class="interaction-attachments">
-
-                                {% for attachment in interaction.attachments.all %}
-                                <a
-                                    href="{{ attachment.file.url }}"
-                                    target="_blank"
-                                    rel="noopener"
-                                    class="attachment-item"
-                                >
-
-                                    <i class="fas fa-paperclip"></i>
-
-                                    <span>
-                                        {{ attachment.original_name }}
-                                    </span>
-
-                                </a>
-                                {% endfor %}
-
-                            </div>
-
-                            {% endif %}
-
                         </div>
 
                     </article>

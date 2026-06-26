@@ -1,13 +1,16 @@
+import shutil
+import tempfile
+
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from registers.models import AssignmentMethod, Category, Priority, Subcategory
 from ticket.models import (
     Ticket,
+    TicketAttachment,
     TicketInteraction,
-    TicketInteractionAttachment,
     Ticket_Status,
 )
 
@@ -15,6 +18,12 @@ from ticket.models import (
 class TicketFlowTests(TestCase):
 
     def setUp(self):
+        self.media_root = tempfile.mkdtemp()
+        self.media_override = override_settings(MEDIA_ROOT=self.media_root)
+        self.media_override.enable()
+        self.addCleanup(self.media_override.disable)
+        self.addCleanup(shutil.rmtree, self.media_root, ignore_errors=True)
+
         self.requester = User.objects.create_user(username="requester")
         self.other_user = User.objects.create_user(username="other")
         self.support = User.objects.create_user(username="support")
@@ -65,7 +74,7 @@ class TicketFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-    def test_add_message_saves_interaction_attachment(self):
+    def test_add_message_does_not_save_attachments(self):
         self.client.force_login(self.requester)
         attachment = SimpleUploadedFile(
             "evidencia.pdf",
@@ -84,10 +93,43 @@ class TicketFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         interaction = TicketInteraction.objects.get(message="Segue evidencia do problema.")
-        self.assertEqual(interaction.attachments.count(), 1)
+        self.assertEqual(interaction.attachments.count(), 0)
+        self.assertFalse(TicketAttachment.objects.filter(ticket=self.ticket).exists())
+
+    def test_add_ticket_attachment_saves_file_on_existing_ticket(self):
+        self.client.force_login(self.requester)
+        attachment = SimpleUploadedFile(
+            "novo-anexo.pdf",
+            b"%PDF-1.4\n",
+            content_type="application/pdf",
+        )
+
+        response = self.client.post(
+            reverse("add_ticket_attachment", args=[self.ticket.id]),
+            {"attachments": attachment},
+        )
+
+        self.assertRedirects(response, reverse("ticket_detail", args=[self.ticket.id]))
         self.assertTrue(
-            TicketInteractionAttachment.objects.filter(
-                interaction=interaction,
-                original_name="evidencia.pdf",
+            TicketAttachment.objects.filter(
+                ticket=self.ticket,
+                original_name="novo-anexo.pdf",
             ).exists()
         )
+
+    def test_add_ticket_attachment_blocks_unrelated_user(self):
+        self.client.force_login(self.other_user)
+        attachment = SimpleUploadedFile(
+            "privado.pdf",
+            b"%PDF-1.4\n",
+            content_type="application/pdf",
+        )
+
+        response = self.client.post(
+            reverse("add_ticket_attachment", args=[self.ticket.id]),
+            {"attachments": attachment},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("home"))
+        self.assertFalse(TicketAttachment.objects.filter(ticket=self.ticket).exists())

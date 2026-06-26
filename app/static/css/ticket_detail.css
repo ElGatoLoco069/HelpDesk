@@ -378,6 +378,32 @@
     color: var(--text-light);
 }
 
+.ticket-attachment-form {
+    display: grid;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-color);
+}
+
+.ticket-attachment-form .file-upload-area {
+    padding: 18px 14px;
+}
+
+.ticket-attachment-form .btn-primary {
+    width: 100%;
+    justify-content: center;
+}
+
+.upload-feedback {
+    min-height: 18px;
+    color: var(--primary-color);
+    font-size: 12px;
+}
+
+.upload-feedback.error {
+    color: #ef4444;
+}
+
 .report-list {
     display: grid;
     gap: 12px;
@@ -741,28 +767,6 @@
     word-break: break-word;
 }
 
-/* ANEXOS */
-
-.interaction-attachments {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 14px;
-}
-
-.interaction-attachments .attachment-item {
-    min-height: 42px;
-    grid-template-columns: 30px 1fr;
-    padding: 8px 12px;
-    border-radius: 12px;
-    transition: 0.2s ease;
-}
-
-.interaction-attachments .attachment-item:hover {
-    transform: translateY(-1px);
-    border-color: rgba(59, 130, 246, 0.12);
-}
-
 /* FORMULARIO */
 
 .interaction-form {
@@ -780,38 +784,9 @@
 .interaction-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 14px;
     margin-top: 18px;
-}
-
-/* BOTAO ANEXO */
-
-.attachment-button {
-    min-height: 42px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 0 14px;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    background: transparent;
-    color: var(--text-color);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-.attachment-button:hover {
-    transform: translateY(-1px);
-    border-color: rgba(59, 130, 246, 0.22);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.12);
-}
-
-.attachment-button input {
-    display: none;
 }
 
 /* EMPTY */
@@ -1781,7 +1756,6 @@ html{
         padding: 14px;
     }
 
-    .interaction-attachments .attachment-item,
     .attachment-item,
     .empty-attachments {
         grid-template-columns: 34px minmax(0, 1fr);

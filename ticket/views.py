@@ -11,7 +11,6 @@ from registers.models import Category, Priority, Subcategory
 from ticket.models import (
     Ticket,
     TicketAttachment,
-    TicketInteractionAttachment,
     TicketReport,
     Ticket_Status,
     TicketInteraction,
@@ -134,10 +133,10 @@ def validate_attachments(request, attachments):
     return True
 
 
-def save_interaction_attachments(interaction, attachments):
+def save_ticket_attachments(ticket, attachments):
     for attachment in attachments:
-        TicketInteractionAttachment.objects.create(
-            interaction=interaction,
+        TicketAttachment.objects.create(
+            ticket=ticket,
             file=attachment,
             original_name=attachment.name,
             content_type=attachment.content_type,
@@ -240,14 +239,7 @@ class TicketView(View):
                 created_by=request.user
             )
 
-            for attachment in attachments:
-                TicketAttachment.objects.create(
-                    ticket=ticket,
-                    file=attachment,
-                    original_name=attachment.name,
-                    content_type=attachment.content_type,
-                    size=attachment.size,
-                )
+            save_ticket_attachments(ticket, attachments)
             
             messages.success(request, f"Chamado criado com sucesso!")
             
@@ -399,7 +391,6 @@ class TicketDetailView(View):
                 TicketInteraction.objects
                 .filter(ticket=ticket)
                 .select_related("user", "user__profile")
-                .prefetch_related("attachments")
             )
             approvers = (
                 User.objects
@@ -434,6 +425,43 @@ class TicketDetailView(View):
             print(e)
             messages.error(request, "Erro ao carregar detalhes do chamado")
             return redirect("home")
+
+
+@method_decorator(login_required(login_url="/"), name="dispatch")
+class AddTicketAttachment(View):
+
+    def post(self, request, ticket_id):
+        ticket = get_object_or_404(
+            Ticket.objects.select_related("status", "created_by", "assigned_to"),
+            id=ticket_id,
+        )
+
+        if not can_access_ticket(request.user, ticket):
+            messages.warning(request, "Voce nao tem permissao para anexar arquivos neste chamado.")
+            return redirect("home")
+
+        done_status = get_done_status()
+
+        if done_status and ticket.status_id == done_status.id:
+            messages.warning(request, "Nao e possivel adicionar anexos em chamado concluido.")
+            return redirect("ticket_detail", ticket_id=ticket.id)
+
+        attachments = request.FILES.getlist("attachments")
+
+        if not attachments:
+            messages.warning(request, "Selecione ao menos um anexo.")
+            return redirect("ticket_detail", ticket_id=ticket.id)
+
+        if not validate_attachments(request, attachments):
+            return redirect("ticket_detail", ticket_id=ticket.id)
+
+        save_ticket_attachments(ticket, attachments)
+
+        total = len(attachments)
+        message = "Anexo adicionado com sucesso!" if total == 1 else "Anexos adicionados com sucesso!"
+        messages.success(request, message)
+
+        return redirect("ticket_detail", ticket_id=ticket.id)
 
 
 @method_decorator(login_required(login_url="/"), name="dispatch")
@@ -472,7 +500,6 @@ class TicketEditView(View):
             TicketInteraction.objects
             .filter(ticket=ticket)
             .select_related("user", "user__profile")
-            .prefetch_related("attachments")
         )
         solution_status = get_solution_status()
         done_status = get_done_status()
@@ -1017,11 +1044,6 @@ class AddMessage(View):
             messages.error(request, "Digite uma mensagem válida.")
             return redirect("ticket_detail", ticket.id)
 
-        attachments = request.FILES.getlist("attachments")
-
-        if not validate_attachments(request, attachments):
-            return redirect("ticket_detail", ticket.id)
-
         if ticket.created_by == request.user:
             interaction_type = "requester"
 
@@ -1037,8 +1059,6 @@ class AddMessage(View):
             message=message,
             interaction_type=interaction_type
         )
-
-        save_interaction_attachments(interaction, attachments)
 
         messages.success(request, "Mensagem adicionada com sucesso!")
 

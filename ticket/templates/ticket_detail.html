@@ -264,22 +264,6 @@
                         {{ interaction.message|linebreaksbr }}
                     </div>
 
-                    {% if interaction.attachments.all %}
-                    <div class="interaction-attachments">
-
-                        {% for attachment in interaction.attachments.all %}
-                        <a href="{{ attachment.file.url }}" target="_blank" rel="noopener" class="attachment-item">
-                            <i class="fas fa-paperclip"></i>
-
-                            <span>
-                                {{ attachment.original_name }}
-                            </span>
-                        </a>
-                        {% endfor %}
-
-                    </div>
-                    {% endif %}
-
                 </div>
 
             </article>
@@ -304,65 +288,46 @@
 
         </div>
 
-        <!-- FORM -->
-        <form class="interaction-form" action="{% url 'add_message' %}" method="post" enctype="multipart/form-data">
+        {% if not ticket_is_closed %}
+            <!-- FORM -->
+            <form class="interaction-form" action="{% url 'add_message' %}" method="post">
 
-            {% csrf_token %}
+                {% csrf_token %}
 
-            <input type="hidden" name="ticket" value="{{ticket.hash}}">
+                <input type="hidden" name="ticket" value="{{ticket.hash}}">
 
-            <label class="edit-field full">
+                <label class="edit-field full">
 
-                <span>
-                    Adicionar nova informacao
-                </span>
+                    <span>
+                        Adicionar nova informacao
+                    </span>
 
-                <textarea
-                    name="message"
-                    rows="5"
-                    minlength="5"
-                    maxlength="1000"
-                    placeholder="Ex.: O patrimonio correto do computador e TI-2048."
-                    required
-                ></textarea>
+                    <textarea
+                        name="message"
+                        rows="5"
+                        minlength="5"
+                        maxlength="1000"
+                        placeholder="Ex.: O patrimonio correto do computador e TI-2048."
+                        required
+                    ></textarea>
 
-            </label>
+                </label>
 
-            <div class="interaction-actions">
+                <div class="interaction-actions">
 
-                <div class="field full">
-                    <label for="attachments">Anexos</label>
+                    <button class="btn-primary" type="submit">
 
-                    <div class="file-upload" id="fileUpload">
-                        <input type="file" id="attachments" name="attachments" accept=".png,.jpg,.jpeg,.pdf"
-                            multiple hidden>
+                        <i class="fas fa-paper-plane"></i>
 
-                        <div class="file-upload-area">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p>
-                                Arraste arquivos ou
-                                <span class="file-link">clique para selecionar</span>
-                            </p>
-                            <small>PNG, JPG ou PDF ate 10MB por arquivo</small>
-                        </div>
+                        Adicionar informacao
 
-                        <p class="upload-feedback" id="uploadFeedback"></p>
-                        <div class="file-list" id="fileList"></div>
-                    </div>
+                    </button>
+
                 </div>
 
-                <button class="btn-primary" type="submit">
-
-                    <i class="fas fa-paper-plane"></i>
-
-                    Adicionar informacao
-
-                </button>
-
-            </div>
-
-        
-        </form>
+            
+            </form>
+        {% endif %}
 
     </article>
 
@@ -512,6 +477,53 @@
                 {% endif %}
 
             </div>
+
+            {% if not ticket_is_closed %}
+            <form
+                class="ticket-attachment-form"
+                action="{% url 'add_ticket_attachment' ticket.id %}"
+                method="post"
+                enctype="multipart/form-data"
+                data-require-attachments="true"
+                data-skip-loading="true"
+            >
+
+                {% csrf_token %}
+
+                <div class="file-upload js-file-upload">
+                    <input
+                        type="file"
+                        id="ticketAttachments"
+                        name="attachments"
+                        accept=".png,.jpg,.jpeg,.pdf"
+                        multiple
+                        hidden
+                    >
+
+                    <div class="file-upload-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>
+                            Arraste arquivos ou
+                            <span class="file-link">clique para selecionar</span>
+                        </p>
+                        <small>PNG, JPG ou PDF ate 10MB por arquivo</small>
+                    </div>
+
+                    <p class="upload-feedback" data-upload-feedback></p>
+                    <div class="file-list" data-file-list></div>
+                </div>
+
+                <button
+                    class="btn-primary"
+                    type="submit"
+                    data-loading-label="Anexando..."
+                >
+                    <i class="fas fa-paperclip"></i>
+                    Adicionar anexos
+                </button>
+
+            </form>
+            {% endif %}
 
         </article>
 
@@ -940,6 +952,8 @@ document.getElementById("approvalForm")
     );
 });
 </script>
+
+<script src="{% static 'js/ticket_detail.js' %}"></script>
 </body>
 
 {% endblock %}
