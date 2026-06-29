@@ -227,7 +227,35 @@
     
     <div id="toastBox"></div>
 
+    {% if user.is_authenticated %}
+    <aside
+        class="browser-notification-prompt"
+        id="browserNotificationPrompt"
+        data-pending-url="{% url 'pending_browser_notifications' %}"
+        data-icon-url="{% static 'images/logo.svg' %}"
+        data-user-id="{{ user.id }}"
+        data-csrf-token="{{ csrf_token }}"
+        hidden
+        aria-live="polite"
+    >
+        <div class="browser-notification-prompt__icon" aria-hidden="true">
+            <i class="fas fa-bell"></i>
+        </div>
+        <div class="browser-notification-prompt__content">
+            <strong>Receba avisos do HelpDesk</strong>
+            <span>Ative as notificações do navegador para acompanhar seus chamados.</span>
+            <div class="browser-notification-prompt__actions">
+                <button type="button" data-notification-allow>Ativar notificações</button>
+                <button type="button" data-notification-dismiss>Agora não</button>
+            </div>
+        </div>
+    </aside>
+    {% endif %}
+
     <script src="{% static 'js/base.js' %}"></script>
+    {% if user.is_authenticated %}
+    <script src="{% static 'js/browser-notifications.js' %}"></script>
+    {% endif %}
 
     <script>
             function showToast(msg, type) {

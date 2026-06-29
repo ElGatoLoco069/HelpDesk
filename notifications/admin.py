@@ -63,12 +63,15 @@ class UserNotificationAdmin(admin.ModelAdmin):
         "user",
         "read",
         "hidden",
+        "browser_notified",
+        "browser_notified_at",
         "created_at",
     )
 
     list_filter = (
         "read",
         "hidden",
+        "browser_notified",
     )
 
     search_fields = (

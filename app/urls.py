@@ -22,7 +22,14 @@ from accounts.views import AccountsView, SettingsView, logout_view
 from home.views import HomeView
 from ticket.views import TicketDetailView, TicketEditView, TicketView, AddMessage, AddTicketAttachment
 from registers.views import CategoryView, get_subcategories
-from notifications.views import mark_notifications_read, notifications_events, notifications_snapshot
+from notifications.views import (
+    mark_browser_notification_displayed,
+    mark_browser_notification_read,
+    mark_notifications_read,
+    notifications_events,
+    notifications_snapshot,
+    pending_browser_notifications,
+)
 from signature.views import SignatureView
 from approval_flow.views import ApprovalDecisionView, RequestApprovalView
 
@@ -44,6 +51,21 @@ urlpatterns = [
     path("mark-read/", mark_notifications_read, name="mark_notifications_read"),
     path("notifications/snapshot/", notifications_snapshot, name="notifications_snapshot"),
     path("notifications/events/", notifications_events, name="notifications_events"),
+    path(
+        "notifications/browser/pending/",
+        pending_browser_notifications,
+        name="pending_browser_notifications",
+    ),
+    path(
+        "notifications/browser/<int:notification_id>/displayed/",
+        mark_browser_notification_displayed,
+        name="mark_browser_notification_displayed",
+    ),
+    path(
+        "notifications/browser/<int:notification_id>/read/",
+        mark_browser_notification_read,
+        name="mark_browser_notification_read",
+    ),
     path("settings/update_dashboard/", SettingsView.as_view(), name="update_dashboard"),
     path("approval/request/", RequestApprovalView.as_view(), name="request_approval"),
     path("approval/<int:approval_id>/decision/", ApprovalDecisionView.as_view(), name="approval_decision"),
