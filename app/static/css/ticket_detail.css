@@ -85,6 +85,96 @@
     grid-template-columns: 1fr;
 }
 
+.ticket-tabs {
+    position: relative;
+    display: inline-grid;
+    grid-template-columns: repeat(3, max-content);
+    gap: 8px;
+    margin-top: 18px;
+    padding: 6px;
+    border-radius: 16px;
+    background: var(--card-background);
+    isolation: isolate;
+}
+
+.ticket-tab-slider {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 0;
+    height: 46px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    box-shadow: 0 8px 25px rgba(37, 99, 235, .25);
+    transition:
+        left .35s cubic-bezier(.22, 1, .36, 1),
+        width .35s cubic-bezier(.22, 1, .36, 1),
+        opacity .15s ease;
+    opacity: 0;
+    z-index: 0;
+}
+
+.ticket-tabs.ready .ticket-tab-slider {
+    opacity: 1;
+}
+
+.ticket-tab-button {
+    position: relative;
+    z-index: 1;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: var(--text-light);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        color .25s ease,
+        transform .25s ease;
+}
+
+.ticket-tab-button:hover {
+    color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.ticket-tab-button:focus-visible {
+    outline: 3px solid rgba(59, 130, 246, .24);
+    outline-offset: 2px;
+}
+
+.ticket-tab-button.active {
+    color: #fff;
+}
+
+.ticket-tab-button.active:hover {
+    color: #fff;
+}
+
+.ticket-tab-panel[hidden] {
+    display: none;
+}
+
+.ticket-tab-panel.active {
+    animation: ticketTabFade .35s ease;
+}
+
+@keyframes ticketTabFade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
 .summary-card,
 .detail-card {
     background: var(--card-background);
@@ -387,6 +477,9 @@
 
 .ticket-attachment-form .file-upload-area {
     padding: 18px 14px;
+    min-height: 150px;
+    display: grid;
+    place-content: center;
 }
 
 .ticket-attachment-form .btn-primary {
@@ -1637,6 +1730,7 @@ textarea.modal_input {
 
 html{
     scroll-behavior: smooth;
+    scrollbar-gutter: stable;
 }
 
 .original-ticket-message,
@@ -1665,6 +1759,7 @@ html{
     .detail-layout.bottom {
         grid-template-columns: 1fr;
     }
+
 }
 
 @media (max-width: 768px) {
@@ -1718,6 +1813,15 @@ html{
 }
 
 @media (max-width: 560px) {
+    .ticket-tabs {
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .ticket-tab-button {
+        padding: 8px 10px;
+    }
+
     .detail-card {
         padding: 14px;
     }

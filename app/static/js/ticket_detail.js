@@ -142,6 +142,96 @@
         });
     }
 
+    function setupApprovalDecisionForm(form) {
+        const decisionField = form.querySelector("[data-approval-decision-field]");
+
+        if (!decisionField) return;
+
+        form.addEventListener("submit", (event) => {
+            const decision = event.submitter?.dataset.approvalDecision || "";
+            decisionField.value = decision;
+        });
+    }
+
+    function setupTicketTabs(tabList) {
+        const buttons = Array.from(tabList.querySelectorAll("[data-ticket-tab]"));
+        const panels = Array.from(document.querySelectorAll("[data-ticket-tab-panel]"));
+        const slider = tabList.querySelector("[data-ticket-tab-slider]");
+        const storageKey = `ticket-active-tab:${window.location.pathname}`;
+
+        if (!buttons.length || !panels.length) return;
+
+        function activateTab(panelId, focusButton = false) {
+            const activeButton = buttons.find(button => button.dataset.ticketTab === panelId);
+            const activePanel = panels.find(panel => panel.id === panelId);
+
+            if (!activeButton || !activePanel) return;
+
+            buttons.forEach(button => {
+                const isActive = button === activeButton;
+                button.classList.toggle("active", isActive);
+                button.setAttribute("aria-selected", String(isActive));
+                button.tabIndex = isActive ? 0 : -1;
+            });
+
+            panels.forEach(panel => {
+                const isActive = panel === activePanel;
+                panel.classList.toggle("active", isActive);
+                panel.hidden = !isActive;
+            });
+
+            if (slider) {
+                slider.style.width = `${activeButton.offsetWidth}px`;
+                slider.style.left = `${activeButton.offsetLeft}px`;
+                tabList.classList.add("ready");
+            }
+
+            try {
+                sessionStorage.setItem(storageKey, panelId);
+            } catch (error) {}
+
+            if (focusButton) activeButton.focus();
+        }
+
+        buttons.forEach((button, index) => {
+            button.addEventListener("click", () => {
+                activateTab(button.dataset.ticketTab);
+            });
+
+            button.addEventListener("keydown", event => {
+                if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+
+                event.preventDefault();
+
+                let nextIndex = index;
+
+                if (event.key === "ArrowLeft") nextIndex = (index - 1 + buttons.length) % buttons.length;
+                if (event.key === "ArrowRight") nextIndex = (index + 1) % buttons.length;
+                if (event.key === "Home") nextIndex = 0;
+                if (event.key === "End") nextIndex = buttons.length - 1;
+
+                activateTab(buttons[nextIndex].dataset.ticketTab, true);
+            });
+        });
+
+        let savedPanelId = "";
+
+        try {
+            savedPanelId = sessionStorage.getItem(storageKey) || "";
+        } catch (error) {}
+
+        activateTab(savedPanelId || buttons[0].dataset.ticketTab);
+
+        window.addEventListener("resize", () => {
+            const activeButton = buttons.find(button => button.getAttribute("aria-selected") === "true");
+
+            if (!activeButton || !slider) return;
+
+            slider.style.width = `${activeButton.offsetWidth}px`;
+            slider.style.left = `${activeButton.offsetLeft}px`;
+        });
+    }
+
     function formatFileSize(size) {
         if (size >= 1024 * 1024) {
             return `${(size / 1024 / 1024).toFixed(1)}MB`;
@@ -164,5 +254,11 @@
         document
             .querySelectorAll("[data-require-attachments='true']")
             .forEach(setupRequiredAttachmentForm);
+        document
+            .querySelectorAll("[data-approval-decision-form]")
+            .forEach(setupApprovalDecisionForm);
+        document
+            .querySelectorAll("[data-ticket-tabs]")
+            .forEach(setupTicketTabs);
     });
 })();

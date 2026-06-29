@@ -116,6 +116,59 @@
 
 </section>
 
+<nav class="ticket-tabs" aria-label="Seções do chamado" role="tablist" data-ticket-tabs>
+    <span class="ticket-tab-slider" aria-hidden="true" data-ticket-tab-slider></span>
+
+    <button
+        class="ticket-tab-button active"
+        id="ticket-service-tab"
+        type="button"
+        role="tab"
+        aria-selected="true"
+        aria-controls="ticket-service-panel"
+        data-ticket-tab="ticket-service-panel"
+    >
+        <i class="fas fa-headset"></i>
+        Atendimento
+    </button>
+
+    <button
+        class="ticket-tab-button"
+        id="ticket-attachments-tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="ticket-attachments-panel"
+        tabindex="-1"
+        data-ticket-tab="ticket-attachments-panel"
+    >
+        <i class="fas fa-paperclip"></i>
+        Anexos
+    </button>
+
+    <button
+        class="ticket-tab-button"
+        id="ticket-records-tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="ticket-records-panel"
+        tabindex="-1"
+        data-ticket-tab="ticket-records-panel"
+    >
+        <i class="fas fa-folder-open"></i>
+        Registros
+    </button>
+</nav>
+
+<div
+    class="ticket-tab-panel active"
+    id="ticket-service-panel"
+    role="tabpanel"
+    aria-labelledby="ticket-service-tab"
+    data-ticket-tab-panel
+>
+
 <!-- RESPONSAVEL -->
 <section class="detail-layout technician-row">
 
@@ -432,8 +485,25 @@
 
         </article>
 
-        <!-- ANEXOS -->
-        <article class="detail-card">
+    </aside>
+
+</section>
+
+</div>
+
+<div
+    class="ticket-tab-panel"
+    id="ticket-attachments-panel"
+    role="tabpanel"
+    aria-labelledby="ticket-attachments-tab"
+    data-ticket-tab-panel
+    hidden
+>
+
+<!-- ANEXOS -->
+<section class="detail-layout technician-row attachment-row">
+
+        <article class="detail-card attachment-card">
 
             <div class="detail-card-header compact">
                 <h2>Anexos</h2>
@@ -527,9 +597,18 @@
 
         </article>
 
-    </aside>
-
 </section>
+
+</div>
+
+<div
+    class="ticket-tab-panel"
+    id="ticket-records-panel"
+    role="tabpanel"
+    aria-labelledby="ticket-records-tab"
+    data-ticket-tab-panel
+    hidden
+>
 
 <!-- RELATORIOS -->
 <section class="detail-layout technician-row">
@@ -692,8 +771,15 @@
                 </div>
 
                 {% if approval.status == "pending" and approval.approver_id == request.user.id %}
-                <form class="approval-actions" method="post" action="{% url 'approval_decision' approval.id %}">
+                <form
+                    class="approval-actions"
+                    method="post"
+                    action="{% url 'approval_decision' approval.id %}"
+                    data-approval-decision-form
+                >
                     {% csrf_token %}
+
+                    <input type="hidden" name="decision" data-approval-decision-field>
 
                     <input
                         type="text"
@@ -702,12 +788,12 @@
                         placeholder="Observação opcional"
                     >
 
-                    <button class="btn-primary success" type="submit" name="decision" value="approve">
+                    <button class="btn-primary success" type="submit" data-approval-decision="approve">
                         <i class="fas fa-check"></i>
                         Aprovar
                     </button>
 
-                    <button class="btn-ghost danger" type="submit" name="decision" value="reject">
+                    <button class="btn-ghost danger" type="submit" data-approval-decision="reject">
                         <i class="fas fa-xmark"></i>
                         Rejeitar
                     </button>
@@ -735,6 +821,8 @@
     </article>
 
 </section>
+
+</div>
 
 <div class="modal fade custom-modal" id="approvalModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">

@@ -74,6 +74,21 @@ class TicketFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_ticket_detail_groups_content_in_three_tabs(self):
+        self.client.force_login(self.requester)
+
+        response = self.client.get(reverse("ticket_detail", args=[self.ticket.id]))
+
+        self.assertContains(response, 'data-ticket-tab="ticket-service-panel"')
+        self.assertContains(response, 'data-ticket-tab="ticket-attachments-panel"')
+        self.assertContains(response, 'data-ticket-tab="ticket-records-panel"')
+        self.assertContains(response, 'id="ticket-service-panel"')
+        self.assertContains(response, 'id="ticket-attachments-panel"')
+        self.assertContains(response, 'id="ticket-records-panel"')
+        self.assertContains(response, "Atendimento")
+        self.assertContains(response, "Anexos")
+        self.assertContains(response, "Registros")
+
     def test_add_message_does_not_save_attachments(self):
         self.client.force_login(self.requester)
         attachment = SimpleUploadedFile(

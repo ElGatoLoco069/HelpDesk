@@ -5,7 +5,7 @@ from django.urls import reverse
 from approval_flow.models import ApprovalRequest
 from notifications.models import UserNotification
 from registers.models import AssignmentMethod, Category, Priority, Subcategory
-from ticket.models import Ticket, Ticket_Status
+from ticket.models import Ticket, TicketInteraction, Ticket_Status
 
 
 class ApprovalFlowTests(TestCase):
@@ -50,6 +50,14 @@ class ApprovalFlowTests(TestCase):
         )
         self.client = Client(HTTP_HOST="localhost")
 
+    def create_approval(self):
+        return ApprovalRequest.objects.create(
+            ticket=self.ticket,
+            requested_by=self.support,
+            approver=self.approver,
+            reason="Necessario aprovar compra de material.",
+        )
+
     def test_support_can_request_approval(self):
         self.client.force_login(self.support)
 
@@ -78,3 +86,72 @@ class ApprovalFlowTests(TestCase):
                 notification__ticket_id=self.ticket.id,
             ).exists()
         )
+
+    def test_approver_can_approve_request(self):
+        approval = self.create_approval()
+        self.client.force_login(self.approver)
+
+        response = self.client.post(
+            reverse("approval_decision", args=[approval.id]),
+            {"decision": "approve", "response_comment": "Compra autorizada."},
+        )
+
+        approval.refresh_from_db()
+        self.assertRedirects(response, reverse("ticket_detail", args=[self.ticket.id]))
+        self.assertEqual(approval.status, ApprovalRequest.STATUS_APPROVED)
+        self.assertEqual(approval.response_comment, "Compra autorizada.")
+        self.assertIsNotNone(approval.decided_at)
+        self.assertTrue(
+            TicketInteraction.objects.filter(
+                ticket=self.ticket,
+                user=self.approver,
+                message__startswith="Autorizacao aprovada",
+            ).exists()
+        )
+
+    def test_approver_can_reject_request(self):
+        approval = self.create_approval()
+        self.client.force_login(self.approver)
+
+        response = self.client.post(
+            reverse("approval_decision", args=[approval.id]),
+            {"decision": "reject", "response_comment": "Compra nao autorizada."},
+        )
+
+        approval.refresh_from_db()
+        self.assertRedirects(response, reverse("ticket_detail", args=[self.ticket.id]))
+        self.assertEqual(approval.status, ApprovalRequest.STATUS_REJECTED)
+        self.assertEqual(approval.response_comment, "Compra nao autorizada.")
+        self.assertIsNotNone(approval.decided_at)
+        self.assertTrue(
+            TicketInteraction.objects.filter(
+                ticket=self.ticket,
+                user=self.approver,
+                message__startswith="Autorizacao rejeitada",
+            ).exists()
+        )
+
+    def test_unrelated_user_cannot_decide_request(self):
+        approval = self.create_approval()
+        self.client.force_login(self.requester)
+
+        response = self.client.post(
+            reverse("approval_decision", args=[approval.id]),
+            {"decision": "approve"},
+        )
+
+        approval.refresh_from_db()
+        self.assertRedirects(response, reverse("ticket_detail", args=[self.ticket.id]))
+        self.assertEqual(approval.status, ApprovalRequest.STATUS_PENDING)
+        self.assertIsNone(approval.decided_at)
+
+    def test_decision_form_keeps_action_in_hidden_field(self):
+        self.create_approval()
+        self.client.force_login(self.approver)
+
+        response = self.client.get(reverse("ticket_detail", args=[self.ticket.id]))
+
+        self.assertContains(response, "data-approval-decision-form")
+        self.assertContains(response, 'name="decision" data-approval-decision-field')
+        self.assertContains(response, 'data-approval-decision="approve"')
+        self.assertContains(response, 'data-approval-decision="reject"')
