@@ -148,3 +148,65 @@ class TicketFlowTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], reverse("home"))
         self.assertFalse(TicketAttachment.objects.filter(ticket=self.ticket).exists())
+
+    def test_assignment_date_is_set_only_once(self):
+        self.assertIsNotNone(self.ticket.assigned_at)
+        assigned_at = self.ticket.assigned_at
+
+        self.ticket.title = self.subcategory
+        self.ticket.save(update_fields=["title"])
+        self.ticket.refresh_from_db()
+
+        self.assertEqual(self.ticket.assigned_at, assigned_at)
+
+    def test_done_and_cancelled_statuses_set_lifecycle_dates(self):
+        done = Ticket_Status.objects.create(name="Concluido", color="done")
+        self.ticket.status = done
+        self.ticket.save(update_fields=["status"])
+        self.ticket.refresh_from_db()
+
+        self.assertIsNotNone(self.ticket.closed_at)
+        self.assertIsNone(self.ticket.cancelled_at)
+
+        reopened = Ticket_Status.objects.create(name="Em andamento", color="progress")
+        self.ticket.status = reopened
+        self.ticket.save(update_fields=["status"])
+        self.ticket.refresh_from_db()
+
+        self.assertIsNotNone(self.ticket.reopened_at)
+
+        cancelled = Ticket_Status.objects.create(name="Cancelado", color="cancelled")
+        self.ticket.status = cancelled
+        self.ticket.save(update_fields=["status"])
+        self.ticket.refresh_from_db()
+
+        self.assertIsNotNone(self.ticket.cancelled_at)
+
+    def test_first_technician_interaction_sets_first_response_once(self):
+        TicketInteraction.objects.create(
+            ticket=self.ticket,
+            user=self.requester,
+            message="Mensagem inicial do solicitante.",
+            interaction_type="requester",
+        )
+        self.ticket.refresh_from_db()
+        self.assertIsNone(self.ticket.first_response_at)
+
+        first = TicketInteraction.objects.create(
+            ticket=self.ticket,
+            user=self.support,
+            message="Primeira resposta tecnica.",
+            interaction_type="technician",
+        )
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.first_response_at, first.created_at)
+
+        first_response_at = self.ticket.first_response_at
+        TicketInteraction.objects.create(
+            ticket=self.ticket,
+            user=self.support,
+            message="Segunda resposta tecnica.",
+            interaction_type="technician",
+        )
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.first_response_at, first_response_at)

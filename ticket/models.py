@@ -2,8 +2,29 @@ from django.db import models
 from registers.models import Subcategory, Priority
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
+
+import unicodedata
 
 # Create your models here.
+
+
+DONE_STATUS_NAMES = {
+    "concluido",
+    "concluida",
+    "resolvido",
+    "resolvida",
+    "fechado",
+    "fechada",
+    "finalizado",
+    "finalizada",
+}
+CANCELLED_STATUS_NAMES = {"cancelado", "cancelada"}
+
+
+def normalize_status_name(name):
+    normalized = unicodedata.normalize("NFKD", name or "")
+    return normalized.encode("ascii", "ignore").decode("ascii").strip().lower()
 
 class Ticket_Status(models.Model):
 
@@ -27,8 +48,13 @@ class Ticket(models.Model):
 
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
     assigned_to = models.ForeignKey(User, related_name="assigned_tickets", null=True, blank=True, on_delete=models.PROTECT)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
+    closed_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    first_response_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    assigned_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    reopened_at = models.DateTimeField(null=True, blank=True, db_index=True)
     solution_proposed_at = models.DateTimeField(null=True, blank=True)
     solution_responded_at = models.DateTimeField(null=True, blank=True)
     requester_solution_accepted = models.BooleanField(null=True, blank=True)
@@ -43,6 +69,55 @@ class Ticket(models.Model):
     
     def __str__(self):
         return self.hash
+
+    def save(self, *args, **kwargs):
+        """Mantem marcos do ciclo de vida sem depender de uma view especifica."""
+        previous = None
+        if self.pk:
+            previous = (
+                type(self).objects
+                .filter(pk=self.pk)
+                .values("assigned_to_id", "status__name")
+                .first()
+            )
+
+        now = timezone.now()
+        lifecycle_fields = set()
+
+        was_assigned = previous and previous["assigned_to_id"] is not None
+        if self.assigned_to_id and not was_assigned and self.assigned_at is None:
+            self.assigned_at = now
+            lifecycle_fields.add("assigned_at")
+
+        current_status = normalize_status_name(self.status.name)
+        previous_status = normalize_status_name(previous["status__name"]) if previous else ""
+        is_done = current_status in DONE_STATUS_NAMES
+        was_done = previous_status in DONE_STATUS_NAMES
+        is_cancelled = current_status in CANCELLED_STATUS_NAMES
+        was_cancelled = previous_status in CANCELLED_STATUS_NAMES
+
+        if is_done and not was_done and self.closed_at is None:
+            self.closed_at = now
+            lifecycle_fields.add("closed_at")
+
+        if is_cancelled and not was_cancelled and self.cancelled_at is None:
+            self.cancelled_at = now
+            lifecycle_fields.add("cancelled_at")
+
+        if (
+            previous
+            and (was_done or was_cancelled)
+            and not (is_done or is_cancelled)
+            and self.reopened_at is None
+        ):
+            self.reopened_at = now
+            lifecycle_fields.add("reopened_at")
+
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and lifecycle_fields:
+            kwargs["update_fields"] = set(update_fields) | lifecycle_fields
+
+        super().save(*args, **kwargs)
 
 
 class TicketAttachment(models.Model):
@@ -76,6 +151,15 @@ class TicketReport(models.Model):
     def __str__(self):
         return f"{self.ticket.hash} - {self.technician}"
 
+    def save(self, *args, **kwargs):
+        creating = self._state.adding
+        super().save(*args, **kwargs)
+        if creating:
+            Ticket.objects.filter(
+                pk=self.ticket_id,
+                first_response_at__isnull=True,
+            ).update(first_response_at=self.created_at)
+
     @property
     def action_items(self):
         return [item.strip() for item in self.actions.splitlines() if item.strip()]
@@ -107,6 +191,15 @@ class TicketInteraction(models.Model):
 
     def __str__(self):
         return f"{self.ticket.hash} - {self.user}"
+
+    def save(self, *args, **kwargs):
+        creating = self._state.adding
+        super().save(*args, **kwargs)
+        if creating and self.interaction_type == "technician":
+            Ticket.objects.filter(
+                pk=self.ticket_id,
+                first_response_at__isnull=True,
+            ).update(first_response_at=self.created_at)
 
 
 class TicketInteractionAttachment(models.Model):
