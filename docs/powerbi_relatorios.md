@@ -41,6 +41,8 @@ O campo `titulo` corresponde à subcategoria cadastrada no sistema. Os tempos s�
 - `vw_chamados_por_categoria`: volume e tempo médio de resolução por categoria.
 - `vw_chamados_por_prioridade`: volume e tempo médio de resolução por prioridade.
 - `vw_chamados_abertos_fechados_mes`: eventos de abertura, fechamento e cancelamento por ano/mês.
+- `vw_chamados_abertos_dia`: quantidade de chamados abertos em cada dia, com ano, mês, semana e dia da semana.
+- `vw_chamados_abertos_semana`: quantidade de chamados abertos por semana, com datas inicial e final da semana.
 - `vw_produtividade_tecnicos`: atribuídos, concluídos, em andamento e tempos médios.
 - `vw_chamados_em_atraso`: chamados ainda abertos, prazo calculado e indicador de atraso.
 - `dim_calendario`: calendário diário de 01/01/2024 a 31/12/2035.
@@ -73,6 +75,8 @@ GRANT SELECT ON vw_relatorio_chamados_geral,
     vw_chamados_por_categoria,
     vw_chamados_por_prioridade,
     vw_chamados_abertos_fechados_mes,
+    vw_chamados_abertos_dia,
+    vw_chamados_abertos_semana,
     vw_produtividade_tecnicos,
     vw_chamados_em_atraso,
     dim_calendario
@@ -97,6 +101,7 @@ No Power Query, crie colunas do tipo **Data** a partir dos timestamps antes de r
 - total aberto, concluído, em andamento e cancelado;
 - chamados por status, categoria, prioridade, técnico e setor/unidade;
 - abertos, concluídos e cancelados por mês;
+- chamados abertos por dia e por semana;
 - tempo médio de resolução e de primeira resposta;
 - ranking de técnicos por chamados concluídos;
 - ranking de categorias e setores com maior demanda;

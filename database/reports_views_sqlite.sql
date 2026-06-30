@@ -5,6 +5,8 @@ DROP VIEW IF EXISTS vw_chamados_por_tecnico;
 DROP VIEW IF EXISTS vw_chamados_por_categoria;
 DROP VIEW IF EXISTS vw_chamados_por_prioridade;
 DROP VIEW IF EXISTS vw_chamados_abertos_fechados_mes;
+DROP VIEW IF EXISTS vw_chamados_abertos_dia;
+DROP VIEW IF EXISTS vw_chamados_abertos_semana;
 DROP VIEW IF EXISTS vw_produtividade_tecnicos;
 DROP VIEW IF EXISTS vw_chamados_em_atraso;
 DROP VIEW IF EXISTS dim_calendario;
@@ -112,6 +114,31 @@ SELECT
 FROM eventos
 GROUP BY referencia
 ORDER BY referencia;
+
+CREATE VIEW vw_chamados_abertos_dia AS
+SELECT
+    DATE(data_abertura) AS data,
+    CAST(STRFTIME('%Y', data_abertura) AS INTEGER) AS ano,
+    CAST(STRFTIME('%m', data_abertura) AS INTEGER) AS mes,
+    CAST(STRFTIME('%W', data_abertura) AS INTEGER) + 1 AS semana,
+    CASE STRFTIME('%w', data_abertura)
+        WHEN '0' THEN 7 ELSE CAST(STRFTIME('%w', data_abertura) AS INTEGER)
+    END AS dia_semana,
+    COUNT(*) AS total_abertos
+FROM vw_relatorio_chamados_geral
+GROUP BY DATE(data_abertura)
+ORDER BY data;
+
+CREATE VIEW vw_chamados_abertos_semana AS
+SELECT
+    CAST(STRFTIME('%Y', data_abertura, '-3 days', 'weekday 4') AS INTEGER) AS ano,
+    CAST(STRFTIME('%W', data_abertura) AS INTEGER) + 1 AS semana,
+    DATE(data_abertura, '-' || ((CAST(STRFTIME('%w', data_abertura) AS INTEGER) + 6) % 7) || ' days') AS inicio_semana,
+    DATE(data_abertura, '-' || ((CAST(STRFTIME('%w', data_abertura) AS INTEGER) + 6) % 7) || ' days', '+6 days') AS fim_semana,
+    COUNT(*) AS total_abertos
+FROM vw_relatorio_chamados_geral
+GROUP BY inicio_semana
+ORDER BY inicio_semana;
 
 CREATE VIEW vw_produtividade_tecnicos AS
 SELECT

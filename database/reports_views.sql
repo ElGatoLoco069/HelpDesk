@@ -104,6 +104,37 @@ FROM eventos
 GROUP BY referencia
 ORDER BY referencia;
 
+CREATE OR REPLACE VIEW vw_chamados_abertos_dia AS
+SELECT
+    data_abertura::date AS data,
+    EXTRACT(YEAR FROM data_abertura)::integer AS ano,
+    EXTRACT(MONTH FROM data_abertura)::integer AS mes,
+    EXTRACT(WEEK FROM data_abertura)::integer AS semana,
+    EXTRACT(ISODOW FROM data_abertura)::integer AS dia_semana,
+    COUNT(*) AS total_abertos
+FROM vw_relatorio_chamados_geral
+GROUP BY
+    data_abertura::date,
+    EXTRACT(YEAR FROM data_abertura),
+    EXTRACT(MONTH FROM data_abertura),
+    EXTRACT(WEEK FROM data_abertura),
+    EXTRACT(ISODOW FROM data_abertura)
+ORDER BY data;
+
+CREATE OR REPLACE VIEW vw_chamados_abertos_semana AS
+SELECT
+    EXTRACT(ISOYEAR FROM data_abertura)::integer AS ano,
+    EXTRACT(WEEK FROM data_abertura)::integer AS semana,
+    DATE_TRUNC('week', data_abertura)::date AS inicio_semana,
+    (DATE_TRUNC('week', data_abertura)::date + 6) AS fim_semana,
+    COUNT(*) AS total_abertos
+FROM vw_relatorio_chamados_geral
+GROUP BY
+    EXTRACT(ISOYEAR FROM data_abertura),
+    EXTRACT(WEEK FROM data_abertura),
+    DATE_TRUNC('week', data_abertura)::date
+ORDER BY inicio_semana;
+
 CREATE OR REPLACE VIEW vw_produtividade_tecnicos AS
 SELECT
     tecnico_id,
