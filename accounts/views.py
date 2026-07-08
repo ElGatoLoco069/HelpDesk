@@ -209,6 +209,7 @@ class SettingsView(View):
         
         user = request.user
         indicators = request.POST.get("indicators")
+        indicators_events = request.POST.get("indicators_events")
         service_queue = request.POST.get("service_queue")
         
         preference, _ = UserPreferences.objects.get_or_create(user=user)
@@ -222,7 +223,12 @@ class SettingsView(View):
             preference.service_queue = True
         else:
             preference.service_queue = False
-            
+        
+        if indicators_events == "on":
+            preference.indicators_events = True
+        else: 
+            preference.indicators_events = False
+        
         preference.save()
         
         messages.success(request, "Dashboard atualizado com sucesso!")

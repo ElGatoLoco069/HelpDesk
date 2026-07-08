@@ -236,7 +236,7 @@ html.dark {
     white-space: nowrap;
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea,
 .modal_input {
@@ -246,13 +246,22 @@ textarea,
     color: var(--text-color);
 }
 
-input:focus,
+input:not([type="checkbox"]):not([type="radio"]):focus,
 select:focus,
 textarea:focus,
 .modal_input:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.16);
     outline: none;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    width: auto;
+    height: auto;
+    max-width: none;
+    flex: 0 0 auto;
+    accent-color: var(--primary-color);
 }
 
 .field label,

@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'notifications',
     'signature',
     'approval_flow',
+    'events',
 ]
 
 MIDDLEWARE = [
@@ -197,5 +198,7 @@ JAZZMIN_SETTINGS = {
         "ticket.TicketAttachment": "fas fa-paperclip",
         "ticket.Ticket": "fas fa-ticket",
         "ticket.Ticket_Status": "fas fa-chart-simple",
+
+        "events.Event": "fas fa-calendar-days",
     },
 }

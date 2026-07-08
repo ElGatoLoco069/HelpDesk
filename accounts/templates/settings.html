@@ -198,6 +198,22 @@
                     <div class="toggle-card">
 
                         <div class="toggle-content">
+                            <h3>Indicadores - Eventos</h3>
+                            <p>Mostra quantidade de eventos abertos, Planejados, Concluidos...</p>
+                        </div>
+
+                        <label class="switch">
+                            <input type="checkbox"
+                                   name="indicators_events"
+                                   {% if preferences.indicators_events %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+
+                    </div>
+
+                    <div class="toggle-card">
+
+                        <div class="toggle-content">
                             <h3>Fila de Atendimento</h3>
                             <p>Exibe os chamados em atendimento.</p>
                         </div>

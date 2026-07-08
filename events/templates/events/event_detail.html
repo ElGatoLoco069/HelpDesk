@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}{{ event.title }} | Help Desk{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'events/css/events.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="events-header">
+    <div>
+        <span class="eyebrow">Evento</span>
+        <h1>{{ event.title }}</h1>
+        <p>{{ event.event_date|date:"d/m/Y" }} &middot; {{ event.start_time|time:"H:i" }} - {{ event.end_time|time:"H:i" }}</p>
+    </div>
+
+    <div class="events-header-actions">
+        <a href="{% url 'events' %}?month={{ event.event_date|date:"Y-m" }}" class="btn-ghost">
+            <i class="fas fa-arrow-left"></i>
+            Calendario
+        </a>
+
+        {% if can_manage_events %}
+        <a href="{% url 'event_edit' event.id %}" class="btn-primary">
+            <i class="fas fa-pen"></i>
+            Editar
+        </a>
+
+        {% if event.status != event.Status.CANCELLED and event.status != event.Status.COMPLETED %}
+        <form method="post" action="{% url 'event_complete' event.id %}" class="inline-event-action">
+            {% csrf_token %}
+            <button type="submit" class="btn-primary success">
+                <i class="fas fa-check"></i>
+                Concluir
+            </button>
+        </form>
+
+        <form method="post" action="{% url 'event_cancel' event.id %}" class="inline-event-action">
+            {% csrf_token %}
+            <button type="submit" class="btn-ghost danger">
+                <i class="fas fa-ban"></i>
+                Cancelar
+            </button>
+        </form>
+        {% endif %}
+        {% endif %}
+    </div>
+</section>
+
+<section class="event-detail-summary">
+    <article class="summary-card {{ event.status_color_class }}">
+        <div class="summary-icon">
+            <i class="fas fa-circle-info"></i>
+        </div>
+        <div>
+            <span class="summary-label">Status</span>
+            <span class="event-status-pill {{ event.status_color_class }}">{{ event.get_status_display }}</span>
+        </div>
+    </article>
+
+    <article class="summary-card priority-{{ event.priority_slug }}">
+        <div class="summary-icon">
+            <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <div>
+            <span class="summary-label">Prioridade</span>
+            <strong class="summary-value">{{ event.get_priority_display }}</strong>
+        </div>
+    </article>
+
+    <article class="summary-card event-planned">
+        <div class="summary-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div>
+            <span class="summary-label">Data e horario</span>
+            <strong class="summary-value">{{ event.event_date|date:"d/m/Y" }}</strong>
+            <span class="info">{{ event.start_time|time:"H:i" }} - {{ event.end_time|time:"H:i" }}</span>
+        </div>
+    </article>
+
+    <article class="summary-card event-total">
+        <div class="summary-icon">
+            <i class="fas fa-rotate"></i>
+        </div>
+        <div>
+            <span class="summary-label">Atualizado</span>
+            <strong class="summary-value">{{ event.updated_at|naturaltime }}</strong>
+            <span class="info">{{ event.updated_at|date:"d/m/Y H:i" }}</span>
+        </div>
+    </article>
+</section>
+
+<section class="event-detail-layout">
+    <article class="detail-card event-card main-detail">
+        <div class="detail-card-header">
+            <div>
+                <h2>Resumo do evento</h2>
+                <p>Dados de planejamento e acompanhamento.</p>
+            </div>
+            <span class="event-section-icon" aria-hidden="true">
+                <i class="fas fa-calendar-check"></i>
+            </span>
+        </div>
+
+        <div class="event-description">
+            {% if event.description %}
+                {{ event.description|linebreaksbr }}
+            {% else %}
+                <span>Nenhuma descricao informada.</span>
+            {% endif %}
+        </div>
+
+        <div class="event-info-grid">
+            <div>
+                <span>Local</span>
+                <strong>{{ event.location }}</strong>
+            </div>
+            <div>
+                <span>Quantidade estimada</span>
+                <strong>{{ event.estimated_people|default:"Nao informada" }}</strong>
+            </div>
+            <div>
+                <span>Suporte presencial</span>
+                <strong>{% if event.needs_onsite_support %}Sim{% else %}Nao{% endif %}</strong>
+            </div>
+            <div>
+                <span>Transmissao ao vivo</span>
+                <strong>{% if event.needs_live_stream %}Sim{% else %}Nao{% endif %}</strong>
+            </div>
+        </div>
+
+        <div class="event-notes-grid">
+            <section>
+                <h3>Recursos necessarios</h3>
+                <p>{{ event.required_resources|default:"Nenhum recurso registrado."|linebreaksbr }}</p>
+            </section>
+
+            <section>
+                <h3>Observacoes tecnicas</h3>
+                <p>{{ event.technical_notes|default:"Nenhuma observacao registrada."|linebreaksbr }}</p>
+            </section>
+        </div>
+    </article>
+
+    <aside class="detail-stack">
+        <article class="detail-card event-card">
+            <div class="detail-card-header compact">
+                <h2>Solicitante</h2>
+                <span class="event-section-icon" aria-hidden="true">
+                    <i class="fas fa-user"></i>
+                </span>
+            </div>
+
+            <div class="person-card">
+                <div class="avatar">
+                    {{ event.requester.first_name|slice:":1" }}{{ event.requester.last_name|slice:":1" }}
+                </div>
+                <div>
+                    <strong>{{ event.requester.get_full_name|default:event.requester.username }}</strong>
+                    <span>{{ event.requester.profile.departamento|default:"Departamento nao informado" }}</span>
+                </div>
+            </div>
+        </article>
+
+        <article class="detail-card event-card">
+            <div class="detail-card-header compact">
+                <h2>Tecnico responsavel</h2>
+                <span class="event-section-icon" aria-hidden="true">
+                    <i class="fas fa-user-gear"></i>
+                </span>
+            </div>
+
+            {% if event.responsible_technician %}
+            <div class="person-card">
+                <div class="avatar">
+                    {{ event.responsible_technician.first_name|slice:":1" }}{{ event.responsible_technician.last_name|slice:":1" }}
+                </div>
+                <div>
+                    <strong>{{ event.responsible_technician.get_full_name|default:event.responsible_technician.username }}</strong>
+                    <span>{{ event.responsible_technician.profile.telefone|default:"Telefone nao informado" }}</span>
+                </div>
+            </div>
+            {% else %}
+            <div class="event-empty-inline">
+                <i class="fas fa-user-plus"></i>
+                <span>Nenhum tecnico atribuido.</span>
+            </div>
+            {% endif %}
+        </article>
+
+        <article class="detail-card event-card">
+            <div class="detail-card-header compact">
+                <h2>Vinculos</h2>
+                <span class="event-section-icon" aria-hidden="true">
+                    <i class="fas fa-link"></i>
+                </span>
+            </div>
+
+            <div class="info-list">
+                <div>
+                    <span>Chamado vinculado</span>
+                    {% if event.related_ticket %}
+                    <strong>
+                        <a href="{% url 'ticket_detail' event.related_ticket.id %}">{{ event.related_ticket.hash }}</a>
+                    </strong>
+                    {% else %}
+                    <strong>Nenhum chamado vinculado</strong>
+                    {% endif %}
+                </div>
+                <div>
+                    <span>Criado por</span>
+                    <strong>{{ event.created_by.get_full_name|default:event.created_by.username }}</strong>
+                </div>
+            </div>
+        </article>
+
+        <article class="detail-card event-card">
+            <div class="detail-card-header compact">
+                <h2>Historico</h2>
+                <span class="event-section-icon" aria-hidden="true">
+                    <i class="fas fa-clock-rotate-left"></i>
+                </span>
+            </div>
+
+            <div class="event-history">
+                <div>
+                    <span>Criado</span>
+                    <strong>{{ event.created_at|date:"d/m/Y H:i" }}</strong>
+                </div>
+                <div>
+                    <span>Atualizado</span>
+                    <strong>{{ event.updated_at|date:"d/m/Y H:i" }}</strong>
+                </div>
+                {% if event.cancelled_at %}
+                <div>
+                    <span>Cancelado</span>
+                    <strong>{{ event.cancelled_at|date:"d/m/Y H:i" }}</strong>
+                </div>
+                {% endif %}
+                {% if event.completed_at %}
+                <div>
+                    <span>Concluido</span>
+                    <strong>{{ event.completed_at|date:"d/m/Y H:i" }}</strong>
+                </div>
+                {% endif %}
+            </div>
+        </article>
+    </aside>
+</section>
+{% endblock %}

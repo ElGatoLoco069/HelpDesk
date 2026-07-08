@@ -22,6 +22,7 @@ class UserPreferences(models.Model):
     
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     indicators = models.BooleanField(default=True)
+    indicators_events = models.BooleanField(default=True)
     service_queue = models.BooleanField(default=True)
     
     def __str__(self):

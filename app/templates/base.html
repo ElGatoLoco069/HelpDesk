@@ -34,7 +34,11 @@
         <aside class="sidebar shadow">
             <script>
                 try {
-                    if (localStorage.getItem("sidebarCollapsed") === "true") {
+                    const savedSidebarState = localStorage.getItem("sidebarCollapsed");
+                    const shouldCollapseSidebar = savedSidebarState === "true"
+                        || (!savedSidebarState && window.matchMedia("(max-width: 768px)").matches);
+
+                    if (shouldCollapseSidebar) {
                         document.currentScript.parentElement.classList.add("collapsed");
                     }
                 } catch (error) {}
@@ -62,6 +66,13 @@
                         <a href="{% url 'home' %}" class="menu-link {% if active_page == 'home' %}active{% endif %}" title="Acessar Dashboard">
                             <i class="fas fa-chart-line"></i>
                             <span class="menu-label">Dashboard</span>
+                        </a>
+                    </li>
+
+                    <li class="menu-item">
+                        <a href="{% url 'events' %}" class="menu-link {% if active_page == 'events' %}active{% endif %}" title="Acessar Eventos">
+                            <i class="fas fa-calendar-days"></i>
+                            <span class="menu-label">Eventos</span>
                         </a>
                     </li>
 

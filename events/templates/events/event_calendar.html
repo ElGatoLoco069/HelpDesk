@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Eventos | Help Desk{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'events/css/events.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="events-header">
+    <div>
+        <span class="eyebrow">Eventos</span>
+        <h1>Calendario de Eventos</h1>
+        <p>Acompanhe datas, horarios, locais, status e responsaveis tecnicos.</p>
+    </div>
+
+    <div class="events-header-actions">
+        {% if can_create_events %}
+        <a href="{% url 'event_create' %}" class="btn-primary" title="Criar novo evento">
+            <i class="fas fa-plus"></i>
+            Novo Evento
+        </a>
+        {% endif %}
+
+        <a href="{% url 'events' %}?{{ today_query }}" class="btn-ghost" title="Voltar para o mes atual">
+            <i class="fas fa-calendar-day"></i>
+            Hoje
+        </a>
+    </div>
+</section>
+
+{% if request.user.profile.is_support %}
+{% if preferences.indicators_events %}
+<section class="events-summary">
+    <article class="summary-card event-total">
+        <div class="summary-icon">
+            <i class="fas fa-calendar-days"></i>
+        </div>
+        <div>
+            <span class="summary-label">Total no mes</span>
+            <strong class="value">{{ indicators.total }}</strong>
+            <span class="info">Eventos cadastrados</span>
+        </div>
+    </article>
+
+    <article class="summary-card event-pending">
+        <div class="summary-icon">
+            <i class="fas fa-hourglass-half"></i>
+        </div>
+        <div>
+            <span class="summary-label">Pendentes</span>
+            <strong class="value">{{ indicators.pending }}</strong>
+            <span class="info">Aguardando planejamento</span>
+        </div>
+    </article>
+
+    <article class="summary-card event-planned">
+        <div class="summary-icon">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+        <div>
+            <span class="summary-label">Planejados</span>
+            <strong class="value">{{ indicators.planned }}</strong>
+            <span class="info">Com agenda definida</span>
+        </div>
+    </article>
+
+    <article class="summary-card event-preparing">
+        <div class="summary-icon">
+            <i class="fas fa-screwdriver-wrench"></i>
+        </div>
+        <div>
+            <span class="summary-label">Em preparacao</span>
+            <strong class="value">{{ indicators.preparing }}</strong>
+            <span class="info">Recursos em ajuste</span>
+        </div>
+    </article>
+
+    <article class="summary-card event-completed">
+        <div class="summary-icon">
+            <i class="fas fa-circle-check"></i>
+        </div>
+        <div>
+            <span class="summary-label">Concluidos</span>
+            <strong class="value">{{ indicators.completed }}</strong>
+            <span class="info">Eventos finalizados</span>
+        </div>
+    </article>
+
+    <article class="summary-card event-cancelled">
+        <div class="summary-icon">
+            <i class="fas fa-ban"></i>
+        </div>
+        <div>
+            <span class="summary-label">Cancelados</span>
+            <strong class="value">{{ indicators.cancelled }}</strong>
+            <span class="info">Fora da agenda</span>
+        </div>
+    </article>
+</section>
+{% endif %}
+{% endif %}
+
+<section class="event-filter-panel">
+    <form class="event-filters" method="get" action="{% url 'events' %}">
+        <input type="hidden" name="month" value="{{ month_value }}">
+
+        <label class="input-field">
+            <span>Status</span>
+            <select name="status">
+                <option value="">Todos</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label class="input-field">
+            <span>Tecnico responsavel</span>
+            <select name="technician">
+                <option value="">Todos</option>
+                {% for technician in technicians %}
+                <option value="{{ technician.id }}" {% if filters.technician == technician.id|stringformat:"s" %}selected{% endif %}>
+                    {{ technician.get_full_name|default:technician.username }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label class="input-field">
+            <span>Local</span>
+            <input
+                type="search"
+                name="location"
+                list="eventLocationOptions"
+                value="{{ filters.location }}"
+                placeholder="Local do evento"
+            >
+            <datalist id="eventLocationOptions">
+                {% for location in locations %}
+                <option value="{{ location }}"></option>
+                {% endfor %}
+            </datalist>
+        </label>
+
+        <label class="input-field">
+            <span>Prioridade</span>
+            <select name="priority">
+                <option value="">Todas</option>
+                {% for value, label in priority_choices %}
+                <option value="{{ value }}" {% if filters.priority == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label class="event-check">
+            <input type="checkbox" name="future_only" {% if filters.future_only %}checked{% endif %}>
+            <span>Somente futuros</span>
+        </label>
+
+        <label class="event-check">
+            <input type="checkbox" name="pending_only" {% if filters.pending_only %}checked{% endif %}>
+            <span>Somente pendentes</span>
+        </label>
+
+        <div class="event-filter-actions">
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-filter"></i>
+                Filtrar
+            </button>
+            <a href="{% url 'events' %}?month={{ month_value }}" class="btn-ghost">
+                <i class="fas fa-eraser"></i>
+                Limpar
+            </a>
+        </div>
+    </form>
+</section>
+
+<section class="events-monthbar">
+    <a href="{% url 'events' %}?{{ prev_month_query }}" class="month-nav-btn" title="Mes anterior">
+        <i class="fas fa-chevron-left"></i>
+    </a>
+
+    <strong>{{ month_label }}</strong>
+
+    <a href="{% url 'events' %}?{{ next_month_query }}" class="month-nav-btn" title="Proximo mes">
+        <i class="fas fa-chevron-right"></i>
+    </a>
+</section>
+
+<section
+    class="events-workspace"
+    data-events-calendar
+    data-api-url="{% url 'events_api' %}?{{ api_querystring }}"
+>
+    <article class="event-calendar-panel">
+        {% if filtered_month_count == 0 %}
+        <div class="event-empty-state calendar-empty-state">
+            <i class="fas fa-calendar-xmark"></i>
+            {% if indicators.total == 0 %}
+            <strong>Nenhum evento encontrado para este mes.</strong>
+            <span>Ainda nao ha eventos cadastrados no periodo selecionado.</span>
+            {% else %}
+            <strong>Nenhum evento corresponde aos filtros aplicados.</strong>
+            <span>Ajuste os filtros para visualizar outros eventos do mes.</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="event-calendar-weekdays">
+            <span>Dom</span>
+            <span>Seg</span>
+            <span>Ter</span>
+            <span>Qua</span>
+            <span>Qui</span>
+            <span>Sex</span>
+            <span>Sab</span>
+        </div>
+
+        <div class="event-calendar-grid">
+            {% for week in calendar_weeks %}
+                {% for day in week %}
+                <div
+                    class="calendar-day {% if not day.in_month %}muted{% endif %} {% if day.is_today %}today{% endif %} {% if day.events %}has-events{% endif %} {% if can_create_events %}is-creatable{% endif %}"
+                    {% if can_create_events %}
+                    data-event-create-url="{% url 'event_create' %}?date={{ day.date|date:'Y-m-d' }}"
+                    title="Criar evento em {{ day.date|date:'d/m/Y' }}"
+                    {% endif %}
+                >
+                    <div class="calendar-day-heading">
+                        {% if can_create_events %}
+                        <a
+                            href="{% url 'event_create' %}?date={{ day.date|date:'Y-m-d' }}"
+                            class="calendar-day-create"
+                            title="Criar evento em {{ day.date|date:'d/m/Y' }}"
+                            aria-label="Criar evento em {{ day.date|date:'d/m/Y' }}"
+                        >
+                            {{ day.date|date:"j" }}
+                        </a>
+                        {% else %}
+                        <span>{{ day.date|date:"j" }}</span>
+                        {% endif %}
+                        {% if day.events %}
+                        <small>{{ day.events|length }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="calendar-events">
+                        {% for event in day.events %}
+                        <a
+                            href="{% url 'event_detail' event.id %}"
+                            class="calendar-event-card {{ event.status_color_class }}"
+                            data-event-id="{{ event.id }}"
+                        >
+                            <span class="calendar-event-time">{{ event.start_time|time:"H:i" }}</span>
+                            <strong>{{ event.title }}</strong>
+                            <span class="calendar-event-location">
+                                <i class="fas fa-location-dot"></i>
+                                {{ event.location }}
+                            </span>
+                            <span class="calendar-event-footer">
+                                <span class="event-status-pill {{ event.status_color_class }}">
+                                    {{ event.get_status_display }}
+                                </span>
+                                {% if event.responsible_technician %}
+                                <small>{{ event.responsible_technician.get_full_name|default:event.responsible_technician.username }}</small>
+                                {% endif %}
+                            </span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </article>
+
+    <aside class="upcoming-events-panel">
+        <div class="panel-heading">
+            <div>
+                <h2>Proximos eventos</h2>
+                <p>Agenda em ordem cronologica</p>
+            </div>
+            <span class="event-section-icon" aria-hidden="true">
+                <i class="fas fa-list-check"></i>
+            </span>
+        </div>
+
+        <div class="upcoming-list">
+            {% for event in upcoming_events %}
+            <a href="{% url 'event_detail' event.id %}" class="upcoming-item {{ event.status_color_class }}">
+                <div class="upcoming-date">
+                    <strong>{{ event.event_date|date:"d" }}</strong>
+                    <span>{{ event.event_date|date:"M" }}</span>
+                </div>
+
+                <div class="upcoming-copy">
+                    <strong>{{ event.title }}</strong>
+                    <span>
+                        {{ event.start_time|time:"H:i" }} - {{ event.end_time|time:"H:i" }} &middot; {{ event.location }}
+                    </span>
+                    <small>
+                        {{ event.get_status_display }}
+                        {% if event.responsible_technician %}
+                        &middot; {{ event.responsible_technician.get_full_name|default:event.responsible_technician.username }}
+                        {% endif %}
+                    </small>
+                </div>
+            </a>
+            {% empty %}
+            <div class="event-empty-state">
+                <i class="fas fa-calendar-xmark"></i>
+                <strong>Nenhum evento futuro encontrado</strong>
+                <span>A agenda nao possui eventos dentro dos filtros atuais.</span>
+            </div>
+            {% endfor %}
+        </div>
+    </aside>
+</section>
+
+<aside class="event-drawer" data-event-drawer hidden aria-live="polite">
+    <div class="event-drawer-overlay" data-event-drawer-close></div>
+    <article class="event-drawer-content">
+        <header class="event-drawer-header">
+            <div>
+                <span data-event-drawer-date></span>
+                <h2 data-event-drawer-title></h2>
+            </div>
+            <button type="button" data-event-drawer-close title="Fechar resumo">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </header>
+
+        <div class="event-drawer-body">
+            <div>
+                <span>Horario</span>
+                <strong data-event-drawer-time></strong>
+            </div>
+            <div>
+                <span>Local</span>
+                <strong data-event-drawer-location></strong>
+            </div>
+            <div>
+                <span>Status</span>
+                <strong data-event-drawer-status></strong>
+            </div>
+            <div>
+                <span>Prioridade</span>
+                <strong data-event-drawer-priority></strong>
+            </div>
+            <div>
+                <span>Tecnico responsavel</span>
+                <strong data-event-drawer-technician></strong>
+            </div>
+        </div>
+
+        <a href="#" class="btn-primary" data-event-drawer-url>
+            <i class="fas fa-arrow-up-right-from-square"></i>
+            Ver detalhes
+        </a>
+    </article>
+</aside>
+
+<script src="{% static 'events/js/events_calendar.js' %}"></script>
+{% endblock %}

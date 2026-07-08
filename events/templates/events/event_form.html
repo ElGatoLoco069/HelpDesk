@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ form_title }} | Help Desk{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'events/css/events.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="events-header">
+    <div>
+        <span class="eyebrow">Eventos</span>
+        <h1>{{ form_title }}</h1>
+        {% if is_create %}
+        <p>Informe a agenda e os recursos necessarios para iniciar o planejamento.</p>
+        {% else %}
+        <p>Atualize responsaveis, prioridade, status e dados tecnicos do evento.</p>
+        {% endif %}
+    </div>
+
+    <div class="events-header-actions">
+        {% if event %}
+        <a href="{% url 'event_detail' event.id %}" class="btn-ghost">
+            <i class="fas fa-arrow-left"></i>
+            Voltar
+        </a>
+        {% else %}
+        <a href="{% url 'events' %}" class="btn-ghost">
+            <i class="fas fa-arrow-left"></i>
+            Voltar
+        </a>
+        {% endif %}
+    </div>
+</section>
+
+<form method="post" class="event-form" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="event-form-errors">
+        {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <section class="event-form-layout">
+        <article class="detail-card event-card event-form-card">
+            <div class="detail-card-header">
+                <div>
+                    <h2>Dados principais</h2>
+                    <p>Informacoes essenciais para montar a agenda.</p>
+                </div>
+                <span class="event-section-icon" aria-hidden="true">
+                    <i class="fas fa-calendar-plus"></i>
+                </span>
+            </div>
+
+            <div class="event-form-grid">
+                <label class="edit-field">
+                    <span>{{ form.event_date.label }}</span>
+                    {{ form.event_date }}
+                    {{ form.event_date.errors }}
+                </label>
+
+                <label class="edit-field">
+                    <span>{{ form.location.label }}</span>
+                    {{ form.location }}
+                    {{ form.location.errors }}
+                </label>
+
+                <label class="edit-field">
+                    <span>{{ form.start_time.label }}</span>
+                    {{ form.start_time }}
+                    {{ form.start_time.errors }}
+                </label>
+
+                <label class="edit-field">
+                    <span>{{ form.end_time.label }}</span>
+                    {{ form.end_time }}
+                    {{ form.end_time.errors }}
+                </label>
+
+                <label class="edit-field full">
+                    <span>{{ form.title.label }}</span>
+                    {{ form.title }}
+                    {{ form.title.errors }}
+                </label>
+
+                <label class="edit-field full">
+                    <span>{{ form.description.label }}</span>
+                    {{ form.description }}
+                    {{ form.description.errors }}
+                </label>
+
+            </div>
+        </article>
+
+        {% if is_create %}
+        <aside class="detail-card event-card event-form-card event-create-defaults">
+            <div class="detail-card-header compact">
+                <h2>Definicoes iniciais</h2>
+                <span class="event-section-icon" aria-hidden="true">
+                    <i class="fas fa-circle-check"></i>
+                </span>
+            </div>
+
+            <div class="event-default-list">
+                <div class="event-default-item">
+                    <span class="event-default-icon">
+                        <i class="fas fa-user"></i>
+                    </span>
+                    <div>
+                        <span>Solicitante</span>
+                        <strong>{{ system_defaults.requester }}</strong>
+                    </div>
+                </div>
+
+                <div class="event-default-item">
+                    <span class="event-default-icon">
+                        <i class="fas fa-hourglass-half"></i>
+                    </span>
+                    <div>
+                        <span>Status</span>
+                        <strong>{{ system_defaults.status }}</strong>
+                    </div>
+                </div>
+
+                <div class="event-default-item">
+                    <span class="event-default-icon">
+                        <i class="fas fa-signal"></i>
+                    </span>
+                    <div>
+                        <span>Prioridade</span>
+                        <strong>{{ system_defaults.priority }}</strong>
+                    </div>
+                </div>
+
+                <div class="event-default-item">
+                    <span class="event-default-icon">
+                        <i class="fas fa-user-gear"></i>
+                    </span>
+                    <div>
+                        <span>Tecnico responsavel</span>
+                        <strong>{{ system_defaults.technician }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <label class="edit-field event-related-ticket-field">
+                <span>{{ form.related_ticket.label }}</span>
+                {{ form.related_ticket }}
+                {{ form.related_ticket.errors }}
+            </label>
+        </aside>
+        {% else %}
+        <aside class="detail-card event-card event-form-card">
+            <div class="detail-card-header compact">
+                <h2>Responsaveis</h2>
+                <span class="event-section-icon" aria-hidden="true">
+                    <i class="fas fa-users-gear"></i>
+                </span>
+            </div>
+
+            <div class="event-form-grid single">
+                <label class="edit-field">
+                    <span>{{ form.requester.label }}</span>
+                    {{ form.requester }}
+                    {{ form.requester.errors }}
+                </label>
+
+                <label class="edit-field">
+                    <span>{{ form.responsible_technician.label }}</span>
+                    {{ form.responsible_technician }}
+                    {{ form.responsible_technician.errors }}
+                </label>
+
+                <label class="edit-field">
+                    <span>{{ form.related_ticket.label }}</span>
+                    {{ form.related_ticket }}
+                    {{ form.related_ticket.errors }}
+                </label>
+            </div>
+        </aside>
+        {% endif %}
+    </section>
+
+    <section class="event-form-layout bottom">
+        <article class="detail-card event-card event-form-card">
+            <div class="detail-card-header">
+                <div>
+                    <h2>Planejamento tecnico</h2>
+                    <p>Recursos, observacoes e necessidades especiais.</p>
+                </div>
+                <span class="event-section-icon" aria-hidden="true">
+                    <i class="fas fa-screwdriver-wrench"></i>
+                </span>
+            </div>
+
+            <div class="event-form-grid">
+                {% if not is_create %}
+                <label class="edit-field">
+                    <span>{{ form.status.label }}</span>
+                    {{ form.status }}
+                    {{ form.status.errors }}
+                </label>
+
+                <label class="edit-field">
+                    <span>{{ form.priority.label }}</span>
+                    {{ form.priority }}
+                    {{ form.priority.errors }}
+                </label>
+                {% endif %}
+
+                <label class="edit-field">
+                    <span>{{ form.estimated_people.label }}</span>
+                    {{ form.estimated_people }}
+                    {{ form.estimated_people.errors }}
+                </label>
+
+                <div class="event-check-list">
+                    <label class="event-check">
+                        {{ form.needs_onsite_support }}
+                        <span>{{ form.needs_onsite_support.label }}</span>
+                    </label>
+
+                    <label class="event-check">
+                        {{ form.needs_live_stream }}
+                        <span>{{ form.needs_live_stream.label }}</span>
+                    </label>
+                </div>
+
+                <label class="edit-field full">
+                    <span>{{ form.required_resources.label }}</span>
+                    {{ form.required_resources }}
+                    {{ form.required_resources.errors }}
+                </label>
+
+                <label class="edit-field full">
+                    <span>{{ form.technical_notes.label }}</span>
+                    {{ form.technical_notes }}
+                    {{ form.technical_notes.errors }}
+                </label>
+            </div>
+        </article>
+    </section>
+
+    <div class="event-form-actions">
+        <a href="{% if event %}{% url 'event_detail' event.id %}{% else %}{% url 'events' %}{% endif %}" class="btn-ghost">
+            Cancelar
+        </a>
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-check"></i>
+            {{ submit_label }}
+        </button>
+    </div>
+</form>
+{% endblock %}

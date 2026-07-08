@@ -7,7 +7,12 @@ const sidebarToggleBtn = document.querySelectorAll(".sidebar-toggle");
 
 function getSavedSidebarState() {
     try {
-        return localStorage.getItem("sidebarCollapsed") === "true";
+        const savedState = localStorage.getItem("sidebarCollapsed");
+
+        if (savedState === "true") return true;
+        if (savedState === "false") return false;
+
+        return window.matchMedia("(max-width: 768px)").matches;
     } catch (error) {
         return false;
     }

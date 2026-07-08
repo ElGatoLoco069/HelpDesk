@@ -60,8 +60,7 @@
         </aside>
 
         <div class="form-card">
-            <form id="ticket-form" action="{% url 'new_ticket' %}" method="post" enctype="multipart/form-data"
-                novalidate>
+            <form id="ticket-form" action="{% url 'new_ticket' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="create">
                 <div class="form-section">
@@ -163,32 +162,20 @@
 
         function formatPhone(value) {
 
-            // Remove tudo que não for número
             value = value.replace(/\D/g, '');
 
-            // =========================
-            // RAMAL (até 3 dígitos)
-            // =========================
             if (value.length <= 3) {
                 return value;
             }
 
-            // =========================
-            // TELEFONE
-            // =========================
-
-            // Remove 55 caso usuário digite manualmente
             if (value.startsWith('55')) {
                 value = value.substring(2);
             }
 
-            // Limite:
-            // DDD (2) + 9 dígitos = 11
             value = value.substring(0, 11);
 
             let formatted = '+55 ';
 
-            // DDD
             if (value.length >= 1) {
                 formatted += '(' + value.substring(0, 2);
             }
@@ -197,17 +184,14 @@
                 formatted += ') ';
             }
 
-            // Número
             if (value.length >= 3) {
 
-                // Celular com 9 dígitos
                 if (value.length >= 7) {
                     formatted += value.substring(2, 7);
                 } else {
                     formatted += value.substring(2);
                 }
 
-                // Final
                 if (value.length >= 8) {
                     formatted += '-' + value.substring(7, 11);
                 }
