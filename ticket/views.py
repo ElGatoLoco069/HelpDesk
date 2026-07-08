@@ -9,6 +9,7 @@ from django.db.models import Q
 
 from registers.models import Category, Priority, Subcategory
 from ticket.models import (
+    DONE_STATUS_NAMES,
     Ticket,
     TicketAttachment,
     TicketReport,
@@ -88,6 +89,18 @@ def get_done_status():
 
 def get_in_service_status():
     return get_status_by_name("em andamento", "em atendimento", "andamento")
+
+
+def is_done_status(status):
+    return bool(status and normalize_status_name(status.name) in DONE_STATUS_NAMES)
+
+
+def get_done_status_ids():
+    return [
+        status.id
+        for status in Ticket_Status.objects.filter(status=True)
+        if is_done_status(status)
+    ]
 
 
 def is_support_user(user):
@@ -279,14 +292,14 @@ class AssignmentMethod(View):
         
         lower_support_demand = None
         lower_demand = float('inf')
-        done_status = get_done_status()
+        done_status_ids = get_done_status_ids()
         
         for user in support_users:
             
             tickets = Ticket.objects.filter(assigned_to=user)
 
-            if done_status:
-                tickets = tickets.exclude(status=done_status)
+            if done_status_ids:
+                tickets = tickets.exclude(status_id__in=done_status_ids)
 
             ticket_count = tickets.count()
             
@@ -324,15 +337,15 @@ class AssignmentMethod(View):
         
         lower_support_demand = None
         lower_demand = float('inf')
-        done_status = get_done_status()
+        done_status_ids = get_done_status_ids()
 
         if assignment and assignment.technicians.exists():
             
             for user in assignment.technicians.all():
                 tickets = Ticket.objects.filter(assigned_to=user)
 
-                if done_status:
-                    tickets = tickets.exclude(status=done_status)
+                if done_status_ids:
+                    tickets = tickets.exclude(status_id__in=done_status_ids)
 
                 ticket_count = tickets.count()
                 
@@ -405,8 +418,6 @@ class TicketDetailView(View):
                 .filter(ticket=ticket)
                 .select_related("requested_by", "approver")
             )
-            done_status = get_done_status()
-
             return render(
                 request,
                 "ticket_detail.html",
@@ -417,7 +428,7 @@ class TicketDetailView(View):
                     "approvers": approvers,
                     "approval_requests": approval_requests,
                     "can_request_approval": is_support_user(request.user),
-                    "ticket_is_closed": bool(done_status and ticket.status_id == done_status.id),
+                    "ticket_is_closed": is_done_status(ticket.status),
                 },
             )
 
@@ -440,9 +451,7 @@ class AddTicketAttachment(View):
             messages.warning(request, "Voce nao tem permissao para anexar arquivos neste chamado.")
             return redirect("home")
 
-        done_status = get_done_status()
-
-        if done_status and ticket.status_id == done_status.id:
+        if is_done_status(ticket.status):
             messages.warning(request, "Nao e possivel adicionar anexos em chamado concluido.")
             return redirect("ticket_detail", ticket_id=ticket.id)
 
@@ -502,11 +511,14 @@ class TicketEditView(View):
             .select_related("user", "user__profile")
         )
         solution_status = get_solution_status()
-        done_status = get_done_status()
         status_options = list(Ticket_Status.objects.filter(status=True).order_by("id"))
 
-        if done_status and ticket.status_id != done_status.id:
-            status_options = [item for item in status_options if item.id != done_status.id]
+        if not is_done_status(ticket.status):
+            status_options = [
+                item
+                for item in status_options
+                if not is_done_status(item)
+            ]
 
         if solution_status.id not in [item.id for item in status_options]:
             status_options.append(solution_status)
@@ -693,6 +705,7 @@ class TicketEditView(View):
                     STATUS_CONCLUIDO,
                     STATUS_PROPOSTA
                 ]
+                or selected_status_name in DONE_STATUS_NAMES
                 or (
                     done_status and
                     status_id == done_status.id
@@ -722,7 +735,7 @@ class TicketEditView(View):
             # =========================
             # CONCLUÍDO -> PROPOSTA
             # =========================
-            if done_status and status_id == done_status.id:
+            if selected_status_name in DONE_STATUS_NAMES:
 
                 status_id = solution_status.id
                 selected_status = solution_status

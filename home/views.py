@@ -5,7 +5,13 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 
-from ticket.models import Ticket, Ticket_Status
+from ticket.models import (
+    DONE_STATUS_NAMES,
+    Ticket,
+    Ticket_Status,
+    is_resolution_paused_status,
+    normalize_status_name,
+)
 from registers.models import Priority
 
 from django.views.generic import View
@@ -56,26 +62,29 @@ class HomeView(View):
         done_status = next(
             (
                 item for item in status
-                if item.name.lower() == "concluido"
+                if normalize_status_name(item.name) in DONE_STATUS_NAMES
             ),
             None
         )
+        done_status_ids = [
+            item.id
+            for item in status
+            if normalize_status_name(item.name) in DONE_STATUS_NAMES
+        ]
 
         in_service_status = next(
             (
                 item for item in status
-                if item.name.lower() == "em andamento"
+                if normalize_status_name(item.name) in {"em andamento", "em atendimento", "andamento"}
             ),
             None
         )
 
-        waiting_status = next(
-            (
-                item for item in status
-                if item.name.lower() in ["aguardando fornecedor", "acao do cliente", "ação do cliente"]
-            ),
-            None
-        )
+        waiting_status_ids = [
+            item.id
+            for item in status
+            if is_resolution_paused_status(item.name)
+        ]
 
         high_priority = next(
             (
@@ -111,9 +120,9 @@ class HomeView(View):
             )
 
         # Remove concluídos do dashboard
-        if done_status:
+        if done_status_ids:
             dashboard_tickets = dashboard_tickets.exclude(
-                status=done_status
+                status_id__in=done_status_ids
             )
 
         # =========================
@@ -124,9 +133,9 @@ class HomeView(View):
         # Se usuário filtrar concluídos,
         # utiliza base original
         if (
-            done_status and
+            done_status_ids and
             status_filter and
-            int(status_filter) == done_status.id
+            int(status_filter) in done_status_ids
         ):
 
             tickets = base_tickets
@@ -184,6 +193,7 @@ class HomeView(View):
                 {
                     "tickets": tickets,
                     "done_status": done_status,
+                    "done_status_ids": done_status_ids,
                 },
                 request=request
             )
@@ -226,8 +236,8 @@ class HomeView(View):
 
             waiting=Count(
                 "id",
-                filter=Q(status=waiting_status)
-            ) if waiting_status else Count(
+                filter=Q(status_id__in=waiting_status_ids)
+            ) if waiting_status_ids else Count(
                 "id",
                 filter=Q(id__isnull=True)
             ),
@@ -248,10 +258,10 @@ class HomeView(View):
             stale_waiting=Count(
                 "id",
                 filter=Q(
-                    status=waiting_status,
+                    status_id__in=waiting_status_ids,
                     updated_at__lt=stale_limit
                 )
-            ) if waiting_status else Count(
+            ) if waiting_status_ids else Count(
                 "id",
                 filter=Q(id__isnull=True)
             ),
@@ -325,6 +335,7 @@ class HomeView(View):
                 "prioritys": prioritys,
                 "status": status,
                 "done_status": done_status,
+                "done_status_ids": done_status_ids,
                 "tecnicos": tecnicos,
 
                 "filters": {

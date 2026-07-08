@@ -8,6 +8,8 @@ DROP VIEW IF EXISTS vw_chamados_abertos_fechados_mes;
 DROP VIEW IF EXISTS vw_chamados_abertos_dia;
 DROP VIEW IF EXISTS vw_chamados_abertos_semana;
 DROP VIEW IF EXISTS vw_produtividade_tecnicos;
+DROP VIEW IF EXISTS vw_notas_tecnicos;
+DROP VIEW IF EXISTS vw_avaliacoes_tecnicos;
 DROP VIEW IF EXISTS vw_chamados_em_atraso;
 DROP VIEW IF EXISTS dim_calendario;
 DROP VIEW IF EXISTS vw_relatorio_chamados_geral;
@@ -35,11 +37,48 @@ SELECT
         ELSE COALESCE(NULLIF(TRIM(COALESCE(technician.first_name, '') || ' ' || COALESCE(technician.last_name, '')), ''), technician.username)
     END AS tecnico_nome,
     requester_profile.departamento AS setor_unidade,
-    ROUND((JULIANDAY(t.closed_at) - JULIANDAY(t.created_at)) * 24.0, 2) AS tempo_resolucao_horas,
+    CASE
+        WHEN t.closed_at IS NULL THEN NULL
+        ELSE ROUND(
+            MAX(
+                ((JULIANDAY(t.closed_at) - JULIANDAY(t.created_at)) * 86400.0)
+                - t.resolution_paused_seconds
+                - CASE
+                    WHEN t.resolution_paused_at IS NULL THEN 0
+                    ELSE MAX((JULIANDAY(t.closed_at) - JULIANDAY(t.resolution_paused_at)) * 86400.0, 0)
+                END,
+                0
+            ) / 3600.0,
+            2
+        )
+    END AS tempo_resolucao_horas,
     ROUND((JULIANDAY(t.first_response_at) - JULIANDAY(t.created_at)) * 24.0, 2) AS tempo_primeira_resposta_horas,
     CASE WHEN LOWER(TRIM(st.name)) IN ('concluido', 'concluído', 'concluida', 'concluída', 'resolvido', 'resolvida', 'fechado', 'fechada', 'finalizado', 'finalizada') THEN 1 ELSE 0 END AS chamado_concluido,
     CASE WHEN LOWER(TRIM(st.name)) IN ('cancelado', 'cancelada') THEN 1 ELSE 0 END AS chamado_cancelado,
-    CASE WHEN LOWER(TRIM(st.name)) NOT IN ('concluido', 'concluído', 'concluida', 'concluída', 'resolvido', 'resolvida', 'fechado', 'fechada', 'finalizado', 'finalizada', 'cancelado', 'cancelada') THEN 1 ELSE 0 END AS chamado_em_aberto
+    CASE WHEN LOWER(TRIM(st.name)) NOT IN ('concluido', 'concluído', 'concluida', 'concluída', 'resolvido', 'resolvida', 'fechado', 'fechada', 'finalizado', 'finalizada', 'cancelado', 'cancelada') THEN 1 ELSE 0 END AS chamado_em_aberto,
+    CASE WHEN t.resolution_paused_at IS NOT NULL THEN 1 ELSE 0 END AS resolucao_pausada,
+    ROUND(
+        (
+            t.resolution_paused_seconds
+            + CASE
+                WHEN t.resolution_paused_at IS NULL THEN 0
+                ELSE MAX(
+                    (JULIANDAY(COALESCE(t.closed_at, t.cancelled_at, CURRENT_TIMESTAMP)) - JULIANDAY(t.resolution_paused_at)) * 86400.0,
+                    0
+                )
+            END
+        ) / 3600.0,
+        2
+    ) AS tempo_pausado_resolucao_horas,
+    CASE
+        WHEN t.closed_at IS NULL THEN NULL
+        ELSE ROUND((JULIANDAY(t.closed_at) - JULIANDAY(t.created_at)) * 24.0, 2)
+    END AS tempo_resolucao_corrida_horas,
+    t.resolution_paused_at AS data_inicio_pausa_resolucao,
+    t.resolution_paused_seconds AS segundos_resolucao_pausada_acumulados,
+    t.satisfaction_rating AS nota_atendimento,
+    t.evaluated_at AS data_avaliacao,
+    CASE WHEN t.satisfaction_rating IS NOT NULL THEN 1 ELSE 0 END AS atendimento_avaliado
 FROM ticket_ticket t
 JOIN ticket_ticket_status st ON st.id = t.status_id
 JOIN registers_priority p ON p.id = t.priority_id
@@ -67,7 +106,9 @@ SELECT
     SUM(chamado_concluido) AS chamados_concluidos,
     SUM(chamado_em_aberto) AS chamados_em_aberto,
     ROUND(AVG(CASE WHEN chamado_concluido = 1 THEN tempo_resolucao_horas END), 2) AS tempo_medio_resolucao_horas,
-    ROUND(AVG(tempo_primeira_resposta_horas), 2) AS tempo_medio_primeira_resposta_horas
+    ROUND(AVG(tempo_primeira_resposta_horas), 2) AS tempo_medio_primeira_resposta_horas,
+    SUM(CASE WHEN nota_atendimento IS NOT NULL THEN 1 ELSE 0 END) AS total_avaliacoes,
+    ROUND(AVG(nota_atendimento), 2) AS nota_media
 FROM vw_relatorio_chamados_geral
 WHERE tecnico_id IS NOT NULL
 GROUP BY tecnico_id, tecnico_nome;
@@ -148,34 +189,118 @@ SELECT
     SUM(chamado_concluido) AS total_concluidos,
     SUM(chamado_em_aberto) AS total_em_andamento,
     ROUND(AVG(CASE WHEN chamado_concluido = 1 THEN tempo_resolucao_horas END), 2) AS tempo_medio_resolucao_horas,
-    ROUND(AVG(tempo_primeira_resposta_horas), 2) AS tempo_medio_primeira_resposta_horas
+    ROUND(AVG(tempo_primeira_resposta_horas), 2) AS tempo_medio_primeira_resposta_horas,
+    SUM(CASE WHEN nota_atendimento IS NOT NULL THEN 1 ELSE 0 END) AS total_avaliacoes,
+    ROUND(AVG(nota_atendimento), 2) AS nota_media
 FROM vw_relatorio_chamados_geral
 WHERE tecnico_id IS NOT NULL
 GROUP BY tecnico_id, tecnico_nome;
 
-CREATE VIEW vw_chamados_em_atraso AS
+CREATE VIEW vw_avaliacoes_tecnicos AS
 SELECT
     t.id AS chamado_id,
     t.hash AS numero_chamado,
-    sc.name AS titulo,
-    st.name AS status,
-    p.name AS prioridade,
-    c.name AS categoria,
+    t.evaluated_at AS data_avaliacao,
+    t.closed_at AS data_fechamento,
+    t.satisfaction_rating AS nota,
+    CASE WHEN t.satisfaction_comment LIKE 'Avaliacao automatica:%' THEN 1 ELSE 0 END AS avaliacao_automatica,
+    t.assigned_to_id AS tecnico_id,
     CASE
         WHEN technician.id IS NULL THEN NULL
         ELSE COALESCE(NULLIF(TRIM(COALESCE(technician.first_name, '') || ' ' || COALESCE(technician.last_name, '')), ''), technician.username)
     END AS tecnico_nome,
-    t.created_at AS data_abertura,
-    DATETIME(t.created_at, PRINTF('+%d minutes', p.estimated_service_time)) AS prazo_sla,
-    ROUND((JULIANDAY(CURRENT_TIMESTAMP) - JULIANDAY(t.created_at)) * 24.0, 2) AS horas_em_aberto,
-    CASE WHEN CURRENT_TIMESTAMP > DATETIME(t.created_at, PRINTF('+%d minutes', p.estimated_service_time)) THEN 1 ELSE 0 END AS atrasado
+    p.name AS prioridade,
+    c.name AS categoria,
+    requester_profile.departamento AS setor_unidade
 FROM ticket_ticket t
-JOIN ticket_ticket_status st ON st.id = t.status_id
 JOIN registers_priority p ON p.id = t.priority_id
 JOIN registers_subcategory sc ON sc.id = t.title_id
 JOIN registers_category c ON c.id = sc.category_id
+JOIN auth_user requester ON requester.id = t.created_by_id
+LEFT JOIN accounts_profile requester_profile ON requester_profile.user_id = requester.id
 LEFT JOIN auth_user technician ON technician.id = t.assigned_to_id
-WHERE LOWER(TRIM(st.name)) NOT IN ('concluido', 'concluído', 'concluida', 'concluída', 'resolvido', 'resolvida', 'fechado', 'fechada', 'finalizado', 'finalizada', 'cancelado', 'cancelada');
+WHERE t.satisfaction_rating IS NOT NULL
+  AND t.assigned_to_id IS NOT NULL;
+
+CREATE VIEW vw_notas_tecnicos AS
+SELECT
+    tecnico_id,
+    tecnico_nome,
+    COUNT(*) AS total_avaliacoes,
+    ROUND(AVG(nota), 2) AS nota_media,
+    MIN(nota) AS menor_nota,
+    MAX(nota) AS maior_nota,
+    SUM(CASE WHEN nota = 1 THEN 1 ELSE 0 END) AS notas_1,
+    SUM(CASE WHEN nota = 2 THEN 1 ELSE 0 END) AS notas_2,
+    SUM(CASE WHEN nota = 3 THEN 1 ELSE 0 END) AS notas_3,
+    SUM(CASE WHEN nota = 4 THEN 1 ELSE 0 END) AS notas_4,
+    SUM(CASE WHEN nota = 5 THEN 1 ELSE 0 END) AS notas_5,
+    SUM(CASE WHEN nota >= 4 THEN 1 ELSE 0 END) AS notas_4_5,
+    ROUND((SUM(CASE WHEN nota >= 4 THEN 1 ELSE 0 END) * 100.0) / NULLIF(COUNT(*), 0), 2) AS percentual_notas_4_5,
+    SUM(avaliacao_automatica) AS avaliacoes_automaticas,
+    MAX(data_avaliacao) AS ultima_avaliacao
+FROM vw_avaliacoes_tecnicos
+GROUP BY tecnico_id, tecnico_nome;
+
+CREATE VIEW vw_chamados_em_atraso AS
+WITH chamados AS (
+    SELECT
+        t.id AS chamado_id,
+        t.hash AS numero_chamado,
+        sc.name AS titulo,
+        st.name AS status,
+        p.name AS prioridade,
+        p.estimated_service_time AS prazo_sla_minutos,
+        c.name AS categoria,
+        CASE
+            WHEN technician.id IS NULL THEN NULL
+            ELSE COALESCE(NULLIF(TRIM(COALESCE(technician.first_name, '') || ' ' || COALESCE(technician.last_name, '')), ''), technician.username)
+        END AS tecnico_nome,
+        t.created_at AS data_abertura,
+        (
+            t.resolution_paused_seconds
+            + CASE
+                WHEN t.resolution_paused_at IS NULL THEN 0
+                ELSE MAX((JULIANDAY(CURRENT_TIMESTAMP) - JULIANDAY(t.resolution_paused_at)) * 86400.0, 0)
+            END
+        ) AS pausa_resolucao_segundos
+    FROM ticket_ticket t
+    JOIN ticket_ticket_status st ON st.id = t.status_id
+    JOIN registers_priority p ON p.id = t.priority_id
+    JOIN registers_subcategory sc ON sc.id = t.title_id
+    JOIN registers_category c ON c.id = sc.category_id
+    LEFT JOIN auth_user technician ON technician.id = t.assigned_to_id
+    WHERE LOWER(TRIM(st.name)) NOT IN ('concluido', 'concluído', 'concluida', 'concluída', 'resolvido', 'resolvida', 'fechado', 'fechada', 'finalizado', 'finalizada', 'cancelado', 'cancelada')
+)
+SELECT
+    chamado_id,
+    numero_chamado,
+    titulo,
+    status,
+    prioridade,
+    categoria,
+    tecnico_nome,
+    data_abertura,
+    DATETIME(
+        data_abertura,
+        PRINTF('+%d minutes', prazo_sla_minutos),
+        PRINTF('+%d seconds', CAST(pausa_resolucao_segundos AS INTEGER))
+    ) AS prazo_sla,
+    ROUND(
+        MAX(
+            ((JULIANDAY(CURRENT_TIMESTAMP) - JULIANDAY(data_abertura)) * 86400.0) - pausa_resolucao_segundos,
+            0
+        ) / 3600.0,
+        2
+    ) AS horas_em_aberto,
+    CASE
+        WHEN MAX(
+            ((JULIANDAY(CURRENT_TIMESTAMP) - JULIANDAY(data_abertura)) * 86400.0) - pausa_resolucao_segundos,
+            0
+        ) > (prazo_sla_minutos * 60)
+        THEN 1 ELSE 0
+    END AS atrasado
+FROM chamados;
 
 CREATE VIEW dim_calendario AS
 WITH RECURSIVE datas(data) AS (

@@ -481,6 +481,36 @@
 
                 </div>
 
+                <div class="metric-item">
+
+                    <span>
+                        Tempo ativo
+                    </span>
+
+                    <strong>
+                        {{ ticket.active_resolution_hours|floatformat:1 }}h
+                    </strong>
+
+                </div>
+
+                <div class="metric-item">
+
+                    <span>
+                        Tempo pausado
+                    </span>
+
+                    <strong>
+                        {{ ticket.resolution_paused_hours|floatformat:1 }}h
+                    </strong>
+
+                    {% if ticket.resolution_is_paused %}
+                    <span class="info">
+                        SLA pausado
+                    </span>
+                    {% endif %}
+
+                </div>
+
             </div>
 
         </article>
